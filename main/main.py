@@ -8,7 +8,7 @@ class Mainloop:
         pygame.init()
         self.screen = pygame.display.set_mode((1280,720))
         self.clock = pygame.time.Clock()
-        icon = pygame.image.load(os.path.dirname(''))
+        icon = pygame.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/game_icon.png')
 
         pygame.display.set_icon(icon)
         self.running = True
@@ -20,7 +20,7 @@ class Mainloop:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-            
+
             pygame.display.flip()
             self.clock.tick(60)
 

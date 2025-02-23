@@ -1,86 +1,68 @@
-import pygame
+import pygame as pg
 import os.path
-pygame.init()
+pg.init()
 
 
-class MainMenu:
-    def __init__(self):
-        self.menu_bg = pygame.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
+class MainMenu():
+    def __init__(self, screen):
+        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
+        self.screen = screen
 
-    def main_menu(self):
-
-        self.menu_bg = pygame.transform.scale(self.menu_bg, self.screen.get_size())
+    def redraw(self):
+        self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
         self.screen.blit(self.menu_bg, (0,0))
-        pygame.display.update()
 
 
-class Displayloop:
+
+
+class Mainloop():
     def __init__(self):
 
-        self.SCREEN_WIDTH = pygame.display.Info().current_w
-        self.SCREEN_HEIGHT = pygame.display.Info().current_h
-        self.clock = pygame.time.Clock()
+        self.SCREEN_WIDTH = pg.display.Info().current_w
+        self.SCREEN_HEIGHT = pg.display.Info().current_h
+        self.clock = pg.time.Clock()
 
-        icon = pygame.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/game_icon.png')
-        pygame.display.set_icon(icon)
+        icon = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/game_icon.png')
+        pg.display.set_icon(icon)
 
         self.running = True
-        self.menu_bg = pygame.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
+        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.fullscreen = True
-        self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+        self.scene = MainMenu(self.screen)
         self.main_loop()
 
 
 
     def main_loop(self):
         while self.running:
-            for event in pygame.event.get():
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_F11:
+            for event in pg.event.get():
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_F11:
                         if self.fullscreen:
-                            self.screen = pygame.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pygame.RESIZABLE)
+                            self.screen = pg.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pg.RESIZABLE)
                             self.fullscreen = False
                         else:
-                            self.screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+                            self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
                             self.fullscreen = True
 
-                elif event.type == pygame.QUIT:
+                elif event.type == pg.QUIT:
                     self.running = False
 
-                elif event.type == pygame.VIDEOEXPOSE:
-                    self.redraw()
 
 
-            pygame.display.update()
+            self.scene.redraw()
+
+            pg.display.update()
             self.clock.tick(60)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Car():
-    def __init__(self):
-        pass
+    pass
+
+class Camera():
+    pass
 
 
 

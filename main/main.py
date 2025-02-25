@@ -1,5 +1,6 @@
 import pygame as pg
 import os.path
+from button import Button
 pg.init()
 
 
@@ -8,12 +9,21 @@ class MainMenu():
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.screen = screen
 
+    def play(self):
+
+    def quit_game(self):
+
+    def settings(self):
+
     def redraw(self):
         self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
         self.screen.blit(self.menu_bg, (0,0))
 
+        self.test = Button(self.screen, pos=(200, 200), text="test")
+        self.test.update()
 
-
+    def events(self, event):
+        play_result = self.test.update(event)
 
 class Mainloop():
     def __init__(self):
@@ -36,7 +46,12 @@ class Mainloop():
 
     def main_loop(self):
         while self.running:
+            self.scene.redraw()
+
+            pg.display.update()
+            self.clock.tick(60)
             for event in pg.event.get():
+                self.scene.events(event)
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_F11:
                         if self.fullscreen:
@@ -49,12 +64,6 @@ class Mainloop():
                 elif event.type == pg.QUIT:
                     self.running = False
 
-
-
-            self.scene.redraw()
-
-            pg.display.update()
-            self.clock.tick(60)
 
 
 

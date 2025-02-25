@@ -10,10 +10,13 @@ class MainMenu():
         self.screen = screen
 
     def play(self):
+        pass
 
     def quit_game(self):
+        pass
 
     def settings(self):
+        pass
 
     def redraw(self):
         self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
@@ -22,8 +25,15 @@ class MainMenu():
         self.test = Button(self.screen, pos=(200, 200), text="test")
         self.test.update()
 
+    def btn_events(self, event):
+        self.test.update(event)
+
     def events(self, event):
-        play_result = self.test.update(event)
+        if event.type == pg.MOUSEBUTTONDOWN:
+            self.btn_events(event)
+
+
+
 
 class Mainloop():
     def __init__(self):
@@ -41,7 +51,6 @@ class Mainloop():
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
         self.scene = MainMenu(self.screen)
         self.main_loop()
-
 
 
     def main_loop(self):

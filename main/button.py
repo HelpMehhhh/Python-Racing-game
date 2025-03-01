@@ -1,4 +1,5 @@
 import pygame as pg
+import os.path
 pg.init()
 class Button():
     def __init__(self, screen, pos, text="button", font=pg.font.SysFont('arial', 75), color="#FFFFFF", hover="#000000"):
@@ -8,8 +9,14 @@ class Button():
         self.font = font
         self.color = color
         self.hover = hover
+        self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
+        self.image_rect = self.image.get_rect(center=self.pos)
         self.text_box = self.font.render(self.text, True, self.color)
         self.button_rect = self.text_box.get_rect(center=self.pos)
+
+    def rescale(self):
+        self.image = pg.transform.scale(self.image, self.screen.get_size())
+        self.image_rect = self.image.get_rect(center=self.pos)
 
     def update(self, event = None):
         self.mouse = pg.mouse.get_pos()
@@ -21,4 +28,5 @@ class Button():
         else:
             self.text_box = self.font.render(self.text, True, self.color)
 
+        self.screen.blit(self.image, self.image_rect)
         self.screen.blit(self.text_box, self.button_rect)

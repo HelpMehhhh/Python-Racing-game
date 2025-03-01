@@ -6,28 +6,26 @@ pg.init()
 
 class MainMenu():
     def __init__(self, screen):
-        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.screen = screen
-        self.scene = self.main_menu
-        self.rescale_btns = []
+        self.page = self.main_menu
+        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
 
     def main_menu(self):
         self.screen.blit(self.menu_bg, (0,0))
         self.test = Button(self.screen, pos=(200, 200), text="test")
         self.test.update()
-        self.rescale_btns.append(self.test)
+
+
 
     def settings(self):
         pass
 
     def redraw(self):
-        self.scene()
+        self.page()
 
     def rescale(self):
         self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
-        for i in range(len(self.rescale_btns)):
-            btn = self.rescale_btns[i]
-            btn.rescale()
+
 
     def btn_events(self, event):
         self.test.update(event)
@@ -58,6 +56,7 @@ class Mainloop():
 
 
     def main_loop(self):
+        self.scene.rescale()
         while self.running:
             self.scene.redraw()
 
@@ -70,11 +69,9 @@ class Mainloop():
                         if self.fullscreen:
                             self.screen = pg.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pg.RESIZABLE)
                             self.fullscreen = False
-
                         else:
                             self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
                             self.fullscreen = True
-
                 elif event.type == pg.QUIT:
                     self.running = False
                 elif event.type == pg.WINDOWRESIZED:

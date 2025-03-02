@@ -1,38 +1,45 @@
 import pygame as pg
 import os.path
 from button import Button
+import sys
 pg.init()
+
+
+class Settings():
+    def __init__(self, screen):
+        pass
+
+    def redraw(self):
+        pass
+
+
+
 
 
 class MainMenu():
     def __init__(self, screen):
         self.screen = screen
-        self.page = self.main_menu
-        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
 
-    def main_menu(self):
-        self.screen.blit(self.menu_bg, (0,0))
-        self.test = Button(self.screen, pos=(200, 200), text="test")
-        self.test.update()
-
-
-
-    def settings(self):
-        pass
 
     def redraw(self):
-        self.page()
+        self.screen.blit(self.menu_bg, (0,0))
+        self.play.update()
+        self.quit.update()
 
     def rescale(self):
+        self.x, self.y = self.screen.get_size()
+        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
+        self.play = Button(self.screen, pos=(self.x/2, self.y/2.66), text="PLAY")
+        self.play.rescale()
+        self.quit = Button(self.screen, pos=(self.x/2, self.y/1.33), text="QUIT")
+        self.quit.rescale()
 
-
-    def btn_events(self, event):
-        self.test.update(event)
 
     def events(self, event):
-        if event.type == pg.MOUSEBUTTONDOWN:
-            self.btn_events(event)
+        if self.play.update(event): print("TIME TO PLAY!!!")
+        if self.quit.update(event): sys.exit()
+
 
 
 

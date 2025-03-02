@@ -2,21 +2,23 @@ import pygame as pg
 import os.path
 pg.init()
 class Button():
-    def __init__(self, screen, pos, text="button", font=pg.font.SysFont('arial', 75), color="#FFFFFF", hover="#000000"):
+    def __init__(self, screen, pos, text="button", color="#FFFFFF", hover="#000000"):
         self.pos = pos
         self.screen = screen
         self.text = text
-        self.font = font
         self.color = color
         self.hover = hover
-        self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
-        self.image_rect = self.image.get_rect(center=self.pos)
-        self.text_box = self.font.render(self.text, True, self.color)
-        self.button_rect = self.text_box.get_rect(center=self.pos)
+        self.rescale()
 
     def rescale(self):
-        self.image = pg.transform.scale(self.image, self.screen.get_size())
+        self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
+        self.x, self.y = self.screen.get_size()
+        self.size = int(0.12*((self.x + self.y)/3))
+        self.image = pg.transform.scale(self.image, (self.x/4, self.y/5))
         self.image_rect = self.image.get_rect(center=self.pos)
+        self.font = pg.font.SysFont('arial', self.size)
+        self.text_box = self.font.render(self.text, True, self.color)
+        self.button_rect = self.text_box.get_rect(center=self.pos)
 
     def update(self, event = None):
         self.mouse = pg.mouse.get_pos()

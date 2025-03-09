@@ -13,24 +13,26 @@ class Settings():
         pass
 
 
-
-
 class MainMenu():
     def __init__(self, screen):
         self.screen = screen
+        self.play = Button(self.screen, pos=(2, 2.66), text="PLAY")
+        self.settings = Button(self.screen, pos=(2, 1.77), size_minus = 10, text="SETTINGS")
+        self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
     def redraw(self):
         self.screen.blit(self.menu_bg, (0,0))
         self.play.update()
         self.quit.update()
+        self.settings.update()
 
     def rescale(self):
         self.x, self.y = self.screen.get_size()
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
-        self.play = Button(self.screen, pos=(self.x/2, self.y/2.66), text="PLAY")
+
         self.play.rescale()
-        self.quit = Button(self.screen, pos=(self.x/2, self.y/1.33), text="QUIT")
+        self.settings.rescale()
         self.quit.rescale()
 
     def events(self, event):
@@ -41,13 +43,25 @@ class MainMenu():
 
 
 class GameLoop():
-    pass
+    def __init__(self, screen):
+        self.screen = screen
+        self.screen.fill((0,0,0))
 
+        self.Player = PlayerCar(self.screen, (2, 1.33))
 
+    def redraw(self):
+        self.screen.fill((0,0,0))
+        self.Player.draw()
+
+    def rescale(self):
+        self.Player.rescale()
+
+    def events(self, event):
+        pass
 
 
 class Mainloop():
-    def __init__(self, scenes):
+    def __init__(self):
 
         self.SCREEN_WIDTH = pg.display.Info().current_w
         self.SCREEN_HEIGHT = pg.display.Info().current_h
@@ -60,12 +74,12 @@ class Mainloop():
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.fullscreen = True
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-        self.scene = scenes[0]
+        self.scene = MainMenu(self.screen)
 
         self.main_loop()
 
     def change_scene(self, event):
-        if event == "PLAY": self.scene
+        if event == "PLAY": self.scene = GameLoop(self.screen)
 
     def main_loop(self):
         self.scene.rescale()
@@ -76,7 +90,8 @@ class Mainloop():
             self.clock.tick(60)
             for event in pg.event.get():
                 r = self.scene.events(event)
-                if r[0] == 1: self.change_scene(r[1])
+                if r:
+                    if r[0] == 1: self.change_scene(r[1])
                 if event.type == pg.KEYDOWN:
                     if event.key == pg.K_F11:
                         if self.fullscreen:
@@ -96,7 +111,23 @@ class Mainloop():
 class Car():
     #color id refers to how the car image files are named 1 through 6
     def __init__(self, screen, start_pos, color_id=1):
-        pass
+        self.screen = screen
+        self.start_pos = start_pos
+        self.color_id = color_id
+        self.tire_angle = 0
+        self.speed = 0
+        
+        self.rescale()
+
+    def draw(self):
+        self.screen.blit(self.image, self.image_rect)
+
+    def rescale(self):
+        self.s_x, self.s_y = self.screen.get_size()
+        self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
+        self.image = pg.transform.scale(self.image, (self.s_x/14, self.s_y/5))
+        self.image_rect = self.image.get_rect(center=(self.s_x/self.start_pos[0], self.s_y/self.start_pos[1]))
+
 
 
 class PlayerCar(Car):
@@ -112,5 +143,4 @@ class Camera():
 
 
 if __name__ == "__main__":
-    scenes = [MainMenu(), Settings(), GameLoop()]
-    Mainloop(scenes)
+    Mainloop()

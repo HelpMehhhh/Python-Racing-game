@@ -17,7 +17,7 @@ class MainMenu():
     def __init__(self, screen):
         self.screen = screen
         self.play = Button(self.screen, pos=(2, 2.66), text="PLAY")
-        self.settings = Button(self.screen, pos=(2, 1.77), size_minus = 10, text="SETTINGS")
+        self.settings = Button(self.screen, pos=(2, 1.77), size_minus=20, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
     def redraw(self):
@@ -116,7 +116,7 @@ class Car():
         self.color_id = color_id
         self.tire_angle = 0
         self.speed = 0
-        
+
         self.rescale()
 
     def draw(self):

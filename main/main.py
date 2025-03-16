@@ -57,7 +57,8 @@ class GameLoop():
         self.Player.rescale()
 
     def events(self, event):
-        pass
+        if event.type == pg.KEYDOWN:
+            self.Player.control(event)
 
 
 class Mainloop():
@@ -112,27 +113,50 @@ class Car():
     #color id refers to how the car image files are named 1 through 6
     def __init__(self, screen, start_pos, color_id=1):
         self.screen = screen
-        self.start_pos = start_pos
+        self.pos = start_pos
         self.color_id = color_id
+        self.carsize_units = (5, 2)
         self.tire_angle = 0
         self.speed = 0
-
+        print(self.unit_to_pixel(5))
         self.rescale()
+
+    def movement_calc(self):
+        pass
 
     def draw(self):
         self.screen.blit(self.image, self.image_rect)
 
-    def rescale(self):
+    def accelerate(self):
+        self.speed += 1
+
+    def reverse(self):
+        self.speed -= 1
+
+    def unit_to_pixel(self, units):
         self.s_x, self.s_y = self.screen.get_size()
+        pixels = int(((self.s_x * self.s_y) // 1920) // units)
+        return pixels
+
+    def rescale(self):
+
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.image = pg.transform.scale(self.image, (self.s_x/14, self.s_y/5))
-        self.image_rect = self.image.get_rect(center=(self.s_x/self.start_pos[0], self.s_y/self.start_pos[1]))
+        self.image = pg.transform.scale(self.image, (self.unit_to_pixel(self.carsize_units[0]), self.unit_to_pixel(self.carsize_units[1])))
+        self.image_rect = self.image.get_rect(center=(self.pos))
 
 
 
 class PlayerCar(Car):
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
+
+
+    def control(self, event):
+        if event.key == pg.K_w:
+            self.accelerate()
+
+        if event.key == pg.K_s:
+            self.reverse()
 
 
 

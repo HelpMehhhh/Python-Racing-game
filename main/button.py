@@ -2,7 +2,7 @@ import pygame as pg
 import os.path
 pg.init()
 class Button():
-    def __init__(self, screen, pos, size_minus=0, text="button", color="#FFFFFF", hover="#000000"):
+    def __init__(self, screen, pos, size_minus=1, text="button", color="#FFFFFF", hover="#000000"):
         self.pos = pos
         self.screen = screen
         self.text = text
@@ -14,7 +14,7 @@ class Button():
     def rescale(self):
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
         self.x, self.y = self.screen.get_size()
-        self.size = int((0.12*((self.x + self.y)/3)) - self.size_minus)
+        self.size = int((0.12*((self.x + self.y)/3)) / self.size_minus)
         self.image = pg.transform.scale(self.image, (self.x/4, self.y/5))
         self.image_rect = self.image.get_rect(center=(self.x/self.pos[0], self.y/self.pos[1]))
         self.font = pg.font.SysFont('arial', self.size)

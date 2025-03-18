@@ -17,7 +17,7 @@ class MainMenu():
     def __init__(self, screen):
         self.screen = screen
         self.play = Button(self.screen, pos=(2, 2.66), text="PLAY")
-        self.settings = Button(self.screen, pos=(2, 1.77), size_minus=20, text="SETTINGS")
+        self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
     def redraw(self):
@@ -47,7 +47,7 @@ class GameLoop():
         self.screen = screen
         self.screen.fill((0,0,0))
 
-        self.Player = PlayerCar(self.screen, (2, 1.33))
+        self.Player = PlayerCar(self.screen, (50.5, 4))
 
     def redraw(self):
         self.screen.fill((0,0,0))
@@ -115,10 +115,9 @@ class Car():
         self.screen = screen
         self.pos = start_pos
         self.color_id = color_id
-        self.carsize_units = (5, 2)
         self.tire_angle = 0
         self.speed = 0
-        print(self.unit_to_pixel(5))
+
         self.rescale()
 
     def movement_calc(self):
@@ -135,14 +134,14 @@ class Car():
 
     def unit_to_pixel(self, units):
         self.s_x, self.s_y = self.screen.get_size()
-        pixels = int(((self.s_x * self.s_y) // 1920) // units)
+        pixels = int(((self.s_x + self.s_y) // 78)* units)
         return pixels
 
     def rescale(self):
-
+        print(self.unit_to_pixel(1))
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.image = pg.transform.scale(self.image, (self.unit_to_pixel(self.carsize_units[0]), self.unit_to_pixel(self.carsize_units[1])))
-        self.image_rect = self.image.get_rect(center=(self.pos))
+        self.image = pg.transform.scale(self.image, (self.unit_to_pixel(3), self.unit_to_pixel(4)))
+        self.image_rect = self.image.get_rect(center=(self.unit_to_pixel(self.pos[0]), self.unit_to_pixel(self.pos[1])))
 
 
 
@@ -162,7 +161,8 @@ class PlayerCar(Car):
 
 
 class Camera():
-    pass
+    def __init__(self):
+        
 
 
 

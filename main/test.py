@@ -1,2 +1,6 @@
-import pygame
-print(pygame.font.get_fonts())
+import numpy as np
+
+
+s_x = 1920
+s_y = 1080
+

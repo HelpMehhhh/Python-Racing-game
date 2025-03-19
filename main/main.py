@@ -2,6 +2,7 @@ import pygame as pg
 import os.path
 from button import Button
 import sys
+import numpy as np
 pg.init()
 
 
@@ -11,6 +12,8 @@ class Settings():
 
     def redraw(self):
         pass
+
+
 
 
 class MainMenu():
@@ -46,19 +49,37 @@ class GameLoop():
     def __init__(self, screen):
         self.screen = screen
         self.screen.fill((0,0,0))
-
-        self.Player = PlayerCar(self.screen, (50.5, 4))
+        self.rescale()
+        #self.Player = PlayerCar(self.screen, (50.5, 4))
 
     def redraw(self):
         self.screen.fill((0,0,0))
-        self.Player.draw()
+        pg.draw.rect(self.screen, (255, 0, 0), ((960, 540), (1, 2).dot(self.coord_conversion)))
+
+
+
+
+
+        #self.Player.draw()
+
+    def create_matrix(self):
+        self.s_x, self.s_y = self.screen.get_size()
+        
+
 
     def rescale(self):
-        self.Player.rescale()
+        self.create_matrix()
+
+
+
+        #self.Player.rescale()
 
     def events(self, event):
-        if event.type == pg.KEYDOWN:
-            self.Player.control(event)
+        #if event.type == pg.KEYDOWN:
+            #self.Player.control(event)
+        pass
+
+
 
 
 class Mainloop():
@@ -81,6 +102,7 @@ class Mainloop():
 
     def change_scene(self, event):
         if event == "PLAY": self.scene = GameLoop(self.screen)
+
 
     def main_loop(self):
         self.scene.rescale()
@@ -145,6 +167,7 @@ class Car():
 
 
 
+
 class PlayerCar(Car):
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
@@ -162,7 +185,8 @@ class PlayerCar(Car):
 
 class Camera():
     def __init__(self):
-        
+        pass
+
 
 
 

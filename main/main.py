@@ -52,9 +52,13 @@ class GameLoop():
         self.rescale()
         #self.Player = PlayerCar(self.screen, (50.5, 4))
 
+    def convert(self, gamev, ofssc = 1):
+        return np.matmul((ofssc, *gamev), self.coord_conversion)
+
     def redraw(self):
+
         self.screen.fill((0,0,0))
-        pg.draw.rect(self.screen, (255, 0, 0), ((960, 540), (1, 2).dot(self.coord_conversion)))
+        pg.draw.rect(self.screen, (255, 0, 0), (self.convert((9.6, 5.4)), self.convert((1, 2), 0)))
 
 
 
@@ -62,13 +66,16 @@ class GameLoop():
 
         #self.Player.draw()
 
-    def create_matrix(self):
-        self.s_x, self.s_y = self.screen.get_size()
-        
+    def create_matrix(self, center):
+        s_x, s_y = self.screen.get_size()
+        scale = np.array([[0, 0], [s_x*0.05208, 0], [0, s_y*0.09259]])
+        scale[0] = -np.matmul((1, *center), scale)
+        self.coord_conversion = scale
+
 
 
     def rescale(self):
-        self.create_matrix()
+        self.create_matrix((5,5))
 
 
 

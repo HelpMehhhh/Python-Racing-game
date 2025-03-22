@@ -45,41 +45,29 @@ class MainMenu():
 
 
 
-class GameLoop():
+class Game():
     def __init__(self, screen):
         self.screen = screen
         self.screen.fill((0,0,0))
+        self.Player = PlayerCar(self.screen, (9.6, 5.4))
         self.rescale()
-        #self.Player = PlayerCar(self.screen, (50.5, 4))
 
     def convert(self, gamev, ofssc = 1):
         return np.matmul((ofssc, *gamev), self.coord_conversion)
 
     def redraw(self):
-
         self.screen.fill((0,0,0))
-        pg.draw.rect(self.screen, (255, 0, 0), (self.convert((9.6, 5.4)), self.convert((1, 2), 0)))
-
-
-
-
-
-        #self.Player.draw()
+        self.Player.rescale(self)
 
     def create_matrix(self, center):
         s_x, s_y = self.screen.get_size()
         scale = np.array([[0, 0], [s_x*0.05208, 0], [0, s_y*0.09259]])
-        scale[0] = -np.matmul((1, *center), scale)
+        scale[0] = -np.matmul((1, *center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
-
-
 
     def rescale(self):
         self.create_matrix((5,5))
-
-
-
-        #self.Player.rescale()
+        self.Player.rescale(self)
 
     def events(self, event):
         #if event.type == pg.KEYDOWN:
@@ -108,8 +96,7 @@ class Mainloop():
         self.main_loop()
 
     def change_scene(self, event):
-        if event == "PLAY": self.scene = GameLoop(self.screen)
-
+        if event == "PLAY": self.scene = Game(self.screen)
 
     def main_loop(self):
         self.scene.rescale()
@@ -147,13 +134,8 @@ class Car():
         self.tire_angle = 0
         self.speed = 0
 
-        self.rescale()
-
     def movement_calc(self):
         pass
-
-    def draw(self):
-        self.screen.blit(self.image, self.image_rect)
 
     def accelerate(self):
         self.speed += 1
@@ -161,16 +143,11 @@ class Car():
     def reverse(self):
         self.speed -= 1
 
-    def unit_to_pixel(self, units):
-        self.s_x, self.s_y = self.screen.get_size()
-        pixels = int(((self.s_x + self.s_y) // 78)* units)
-        return pixels
-
-    def rescale(self):
-        print(self.unit_to_pixel(1))
+    def rescale(self, game):
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.image = pg.transform.scale(self.image, (self.unit_to_pixel(3), self.unit_to_pixel(4)))
-        self.image_rect = self.image.get_rect(center=(self.unit_to_pixel(self.pos[0]), self.unit_to_pixel(self.pos[1])))
+        self.image = pg.transform.scale(self.image, game.convert((1, 2), 0))
+        self.image_rect = self.image.get_rect(center=game.convert(self.pos))
+        self.screen.blit(self.image, self.image_rect)
 
 
 
@@ -178,7 +155,6 @@ class Car():
 class PlayerCar(Car):
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
-
 
     def control(self, event):
         if event.key == pg.K_w:
@@ -189,10 +165,6 @@ class PlayerCar(Car):
 
 
 
-
-class Camera():
-    def __init__(self):
-        pass
 
 
 

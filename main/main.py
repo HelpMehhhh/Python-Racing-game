@@ -65,6 +65,11 @@ class Game():
         scale[0] = -np.matmul((1, *center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
 
+    def background(self):
+        self.bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
+        self.bg = pg.transform.scale(self.bg, )
+
+
     def rescale(self):
         self.create_matrix((5,5))
         self.Player.rescale(self)

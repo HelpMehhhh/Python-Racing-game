@@ -49,7 +49,7 @@ class Game():
     def __init__(self, screen):
         self.screen = screen
         self.screen.fill((0,0,0))
-        self.Player = PlayerCar(self.screen, (9.6, 5.4))
+        self.Player = PlayerCar(self.screen, (0, 0))
         self.rescale()
 
     def convert(self, gamev, ofssc = 1):
@@ -57,8 +57,9 @@ class Game():
 
     def redraw(self):
         self.screen.fill((0,0,0))
-        self.Player.rescale(self)
         self.screen.blit(self.bg, self.bg_rect)
+        self.Player.rescale(self)
+
 
     def create_matrix(self, center):
         s_x, s_y = self.screen.get_size()
@@ -67,9 +68,8 @@ class Game():
         self.coord_conversion = scale
 
     def background(self):
-
         self.bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/race_track.png')
-        self.bg = pg.transform.scale(self.bg, self.convert((100, 50), 0))
+        self.bg = pg.transform.scale(self.bg, self.convert((224, 155), 0))
         self.bg_rect = self.bg.get_rect(center=self.convert((0, 0)))
 
 
@@ -154,7 +154,7 @@ class Car():
 
     def rescale(self, game):
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.image = pg.transform.scale(self.image, game.convert((1, 2), 0))
+        self.image = pg.transform.scale(self.image, game.convert((2, 4), 0))
         self.image_rect = self.image.get_rect(center=game.convert(self.pos))
         self.screen.blit(self.image, self.image_rect)
 

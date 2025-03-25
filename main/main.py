@@ -61,9 +61,9 @@ class Game():
         self.Player.rescale(self)
 
 
-    def create_matrix(self, center):
+    def create_matrix(self, center, zoom):
         s_x, s_y = self.screen.get_size()
-        scale = np.array([[0, 0], [s_x*0.05208, 0], [0, s_y*0.09259]])
+        scale = np.array([[0, 0], [s_x*(0.05208*zoom), 0], [0, s_y*(0.09259*zoom)]])
         scale[0] = -np.matmul((1, *center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
 
@@ -74,7 +74,7 @@ class Game():
 
 
     def rescale(self):
-        self.create_matrix((0, 0))
+        self.create_matrix((0, 0), 0.2)
         self.Player.rescale(self)
         self.background()
 

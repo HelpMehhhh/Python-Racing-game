@@ -56,8 +56,7 @@ class Game():
         return np.matmul((ofssc, *gamev), self.coord_conversion)
 
     def redraw(self):
-        self.screen.fill((0,0,0))
-        self.screen.blit(self.bg, self.bg_rect)
+        self.screen.fill((78, 217, 65))
         self.Player.rescale(self)
 
 
@@ -68,13 +67,11 @@ class Game():
         self.coord_conversion = scale
 
     def background(self):
-        self.bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/race_track.png')
-        self.bg = pg.transform.scale(self.bg, self.convert((224, 155), 0))
-        self.bg_rect = self.bg.get_rect(center=self.convert((0, 0)))
+        #pg.gfxdraw.bezier(self.screen, , steps, color)
 
 
     def rescale(self):
-        self.create_matrix((0, 0), 0.2)
+        self.create_matrix((0, 0), 0.6)
         self.Player.rescale(self)
         self.background()
 

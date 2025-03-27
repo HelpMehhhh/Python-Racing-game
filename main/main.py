@@ -1,4 +1,5 @@
 import pygame as pg
+import pygame.gfxdraw
 import os.path
 from button import Button
 import sys
@@ -46,6 +47,8 @@ class MainMenu():
 
 
 class Game():
+
+    RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
         self.screen.fill((0,0,0))
@@ -67,7 +70,7 @@ class Game():
         self.coord_conversion = scale
 
     def background(self):
-        #pg.gfxdraw.bezier(self.screen, , steps, color)
+        pygame.gfxdraw.bezier(self.screen, (self.convert((4, 0)), self.convert((7, 3)), self.convert((10, 0))), 6, (0, 0, 0))
 
 
     def rescale(self):

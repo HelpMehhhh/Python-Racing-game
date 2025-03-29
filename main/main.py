@@ -1,9 +1,10 @@
 import pygame as pg
-import pygame.gfxdraw
 import os.path
 from button import Button
 import sys
 import numpy as np
+from math import pi
+from pygame import gfxdraw
 pg.init()
 
 
@@ -61,6 +62,8 @@ class Game():
     def redraw(self):
         self.screen.fill((78, 217, 65))
         self.Player.rescale(self)
+        self.background()
+
 
 
     def create_matrix(self, center, zoom):
@@ -70,11 +73,11 @@ class Game():
         self.coord_conversion = scale
 
     def background(self):
-        pygame.gfxdraw.bezier(self.screen, (self.convert((4, 0)), self.convert((7, 3)), self.convert((10, 0))), 6, (0, 0, 0))
+        pg.gfxdraw.filled_polygon(self.screen, ((850, 540), (850, 440), (890, 400), (1100, 400), (1050, 440), (1050, 540)), (0, 0, 0))
 
 
     def rescale(self):
-        self.create_matrix((0, 0), 0.6)
+        self.create_matrix((0, 0), 0.2)
         self.Player.rescale(self)
         self.background()
 
@@ -112,6 +115,7 @@ class Mainloop():
         while self.running:
             self.scene.redraw()
 
+            #pg.display.flip()
             pg.display.update()
             self.clock.tick(60)
             for event in pg.event.get():

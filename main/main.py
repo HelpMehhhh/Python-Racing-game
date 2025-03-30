@@ -3,8 +3,6 @@ import os.path
 from button import Button
 import sys
 import numpy as np
-from math import pi
-from pygame import gfxdraw
 pg.init()
 
 
@@ -49,12 +47,26 @@ class MainMenu():
 
 class Game():
 
+    BEZIER_POINTS = [((2,0), (4,4), (6,0))]
     RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
+        self.generate_track_points()
         self.screen.fill((0,0,0))
         self.Player = PlayerCar(self.screen, (0, 0))
         self.rescale()
+
+    def generate_track_points(self):
+
+        for points in self.BEZIER_POINTS:
+            def Bx(x): return (1-x)((1-x)*points[0][0] + x*points[1][0]) + x((1 - x)*points[1][0] + x*points[2][0])
+            def By(y): return (1-y)((1-y)*points[0][1] + y*points[1][1]) + y((1 - y)*points[1][1] + y*points[2][1])
+            for step in range(6):
+                print(Bx(step))
+
+
+
+
 
     def convert(self, gamev, ofssc = 1):
         return np.matmul((ofssc, *gamev), self.coord_conversion)

@@ -3,6 +3,7 @@ import os.path
 from button import Button
 import sys
 import numpy as np
+from pygame import gfxdraw
 pg.init()
 
 
@@ -46,8 +47,8 @@ class MainMenu():
 
 
 class Game():
-
-    BEZIER_POINTS = [((2,0), (4,4), (6,0))]
+    TRACK_WIDTH = 6
+    BEZIER_POINTS = [((2,0), (4,-10), (10,-3))]
     RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
@@ -57,12 +58,18 @@ class Game():
         self.rescale()
 
     def generate_track_points(self):
-
         for points in self.BEZIER_POINTS:
-            def Bx(x): return (1-x)((1-x)*points[0][0] + x*points[1][0]) + x((1 - x)*points[1][0] + x*points[2][0])
-            def By(y): return (1-y)((1-y)*points[0][1] + y*points[1][1]) + y((1 - y)*points[1][1] + y*points[2][1])
-            for step in range(6):
-                print(Bx(step))
+            def Bx(x): return (1 - x)*((1 - x)*points[0][0] + x*points[1][0]) + x*((1 - x)*points[1][0] + x*points[2][0])
+            def By(y): return (1 - y)*((1 - y)*points[0][1] + y*points[1][1]) + y*((1 - y)*points[1][1] + y*points[2][1])
+            steps = (round(i * 0.1, 2) for i in range(11))
+            for step in steps:
+                self.RACETRACK_POINTS.append((round(Bx(step), 3), round(By(step), 3)))
+
+            for point in reversed(self.RACETRACK_POINTS):
+                new_p = (round(point[0], 3), round(point[1], 3))
+                self.RACETRACK_POINTS.append(new_p)
+
+
 
 
 
@@ -73,8 +80,9 @@ class Game():
 
     def redraw(self):
         self.screen.fill((78, 217, 65))
-        self.Player.rescale(self)
         self.background()
+        self.Player.rescale(self)
+
 
 
 
@@ -85,7 +93,10 @@ class Game():
         self.coord_conversion = scale
 
     def background(self):
-        pg.gfxdraw.filled_polygon(self.screen, ((850, 540), (850, 440), (890, 400), (1100, 400), (1050, 440), (1050, 540)), (0, 0, 0))
+        screen_points = []
+        for point in self.RACETRACK_POINTS:
+            screen_points.append(self.convert(point))
+        pg.gfxdraw.filled_polygon(self.screen, screen_points, (0, 0, 0))
 
 
     def rescale(self):

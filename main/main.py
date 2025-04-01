@@ -70,8 +70,8 @@ class Game():
             steps = (round(i * 0.1, 2) for i in range(11))
             for step in steps:
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
-                print((Bxdt.subs(t, step), Bydt.subs(t, step)))
-
+                normal = -1/(Bydt.subs(t, step)/Bxdt.subs(t, step))
+                
 
             for point in reversed(self.RACETRACK_POINTS):
                 new_p = (round(point[0], 3), round(point[1], 3))

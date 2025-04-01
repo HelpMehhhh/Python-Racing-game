@@ -4,6 +4,7 @@ from button import Button
 import sys
 import numpy as np
 from pygame import gfxdraw
+import sympy as sym
 pg.init()
 
 
@@ -48,7 +49,7 @@ class MainMenu():
 
 class Game():
     TRACK_WIDTH = 6
-    BEZIER_POINTS = [((2,0), (4,-10), (10,-3))]
+    BEZIER_POINTS = [((-4, 1), (-1,-14), (10,-8))]
     RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
@@ -59,11 +60,18 @@ class Game():
 
     def generate_track_points(self):
         for points in self.BEZIER_POINTS:
-            def Bx(x): return (1 - x)*((1 - x)*points[0][0] + x*points[1][0]) + x*((1 - x)*points[1][0] + x*points[2][0])
-            def By(y): return (1 - y)*((1 - y)*points[0][1] + y*points[1][1]) + y*((1 - y)*points[1][1] + y*points[2][1])
+            t = sym.Symbol('t')
+            Bx = (1 - t)*((1 - t)*points[0][0] + t*points[1][0]) + t*((1 - t)*points[1][0] + t*points[2][0])
+            By = (1 - t)*((1 - t)*points[0][1] + t*points[1][1]) + t*((1 - t)*points[1][1] + t*points[2][1])
+            Bxdt = sym.diff(Bx, t)
+            Bydt = sym.diff(By, t)
+
+
             steps = (round(i * 0.1, 2) for i in range(11))
             for step in steps:
-                self.RACETRACK_POINTS.append((round(Bx(step), 3), round(By(step), 3)))
+                self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
+                print((Bxdt.subs(t, step), Bydt.subs(t, step)))
+
 
             for point in reversed(self.RACETRACK_POINTS):
                 new_p = (round(point[0], 3), round(point[1], 3))

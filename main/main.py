@@ -49,7 +49,7 @@ class MainMenu():
 
 class Game():
     TRACK_WIDTH = 6
-    BEZIER_POINTS = [((-4, 1), (-1,-14), (10,-8))]
+    BEZIER_POINTS = [((-8, 1), (-9,-14), (4, -15), (10, -2))]
     RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
@@ -61,8 +61,8 @@ class Game():
     def generate_track_points(self):
         for points in self.BEZIER_POINTS:
             t = sym.Symbol('t')
-            Bx = (1 - t)*((1 - t)*points[0][0] + t*points[1][0]) + t*((1 - t)*points[1][0] + t*points[2][0])
-            By = (1 - t)*((1 - t)*points[0][1] + t*points[1][1]) + t*((1 - t)*points[1][1] + t*points[2][1])
+            Bx = ((1 - t)**3)*points[0][0]+3*((1-t)**2)*t*points[1][0]+3*(1-t)*(t**2)*points[2][0]+(t**3)*points[3][0]
+            By = ((1 - t)**3)*points[0][1]+3*((1-t)**2)*t*points[1][1]+3*(1-t)*(t**2)*points[2][1]+(t**3)*points[3][1]
             Bxdt = sym.diff(Bx, t)
             Bydt = sym.diff(By, t)
 
@@ -71,7 +71,7 @@ class Game():
             for step in steps:
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
                 normal = -1/(Bydt.subs(t, step)/Bxdt.subs(t, step))
-                
+
 
             for point in reversed(self.RACETRACK_POINTS):
                 new_p = (round(point[0], 3), round(point[1], 3))

@@ -49,7 +49,7 @@ class MainMenu():
 
 class Game():
     TRACK_WIDTH = 6
-    BEZIER_POINTS = [((-4, 1), (-1,-14), (10,-8))]
+    BEZIER_POINTS = [((-4, 0), (-5, -15), (-3,-25)), ((-3, -25), (-1, -32), (5, -43)), ((5, -43), (12, -49), (20, -44)), ((18, -40), (9, -42), (7, -30))]
     RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
@@ -63,25 +63,11 @@ class Game():
             t = sym.Symbol('t')
             Bx = (1 - t)*((1 - t)*points[0][0] + t*points[1][0]) + t*((1 - t)*points[1][0] + t*points[2][0])
             By = (1 - t)*((1 - t)*points[0][1] + t*points[1][1]) + t*((1 - t)*points[1][1] + t*points[2][1])
-            Bxdt = sym.diff(Bx, t)
-            Bydt = sym.diff(By, t)
 
 
             steps = (round(i * 0.1, 2) for i in range(11))
             for step in steps:
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
-                print((Bxdt.subs(t, step), Bydt.subs(t, step)))
-
-
-            for point in reversed(self.RACETRACK_POINTS):
-                new_p = (round(point[0], 3), round(point[1], 3))
-                self.RACETRACK_POINTS.append(new_p)
-
-
-
-
-
-
 
     def convert(self, gamev, ofssc = 1):
         return np.matmul((ofssc, *gamev), self.coord_conversion)
@@ -90,9 +76,6 @@ class Game():
         self.screen.fill((78, 217, 65))
         self.background()
         self.Player.rescale(self)
-
-
-
 
     def create_matrix(self, center, zoom):
         s_x, s_y = self.screen.get_size()
@@ -108,7 +91,7 @@ class Game():
 
 
     def rescale(self):
-        self.create_matrix((0, 0), 0.2)
+        self.create_matrix((60, 0), 0.1)
         self.Player.rescale(self)
         self.background()
 

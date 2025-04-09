@@ -87,7 +87,7 @@ class Game():
         screen_points = []
         for point in self.RACETRACK_POINTS:
             screen_points.append(self.convert(point))
-        pg.gfxdraw.filled_polygon(self.screen, screen_points, (0, 0, 0))
+        pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66,))
 
 
     def rescale(self):

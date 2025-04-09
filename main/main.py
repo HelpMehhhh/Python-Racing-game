@@ -6,6 +6,7 @@ import numpy as np
 from pygame import gfxdraw
 import sympy as sym
 pg.init()
+pg.key.set_repeat(200)
 
 
 class Settings():
@@ -55,7 +56,7 @@ class Game():
         self.screen = screen
         self.generate_track_points()
         self.screen.fill((0,0,0))
-        self.Player = PlayerCar(self.screen, (0, 0))
+        self.Player = PlayerCar(self.screen, self, [0, 0])
         self.rescale()
 
     def generate_track_points(self):
@@ -73,9 +74,10 @@ class Game():
         return np.matmul((ofssc, *gamev), self.coord_conversion)
 
     def redraw(self):
+        self.create_matrix(self.Player.pos, 0.1)
         self.screen.fill((78, 217, 65))
         self.background()
-        self.Player.rescale(self)
+        self.Player.redraw()
 
     def create_matrix(self, center, zoom):
         s_x, s_y = self.screen.get_size()
@@ -87,18 +89,18 @@ class Game():
         screen_points = []
         for point in self.RACETRACK_POINTS:
             screen_points.append(self.convert(point))
-        pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66,))
+        pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
 
     def rescale(self):
-        self.create_matrix((60, 0), 0.1)
-        self.Player.rescale(self)
+        self.create_matrix((0, 0), 0.1)
+        self.Player.rescale()
         self.background()
 
     def events(self, event):
-        #if event.type == pg.KEYDOWN:
-            #self.Player.control(event)
-        pass
+        if event.type == pg.KEYDOWN:
+            self.Player.control(event)
+
 
 
 
@@ -154,27 +156,31 @@ class Mainloop():
 
 class Car():
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, start_pos, color_id=1):
+    def __init__(self, screen, game, start_pos, color_id=1):
         self.screen = screen
         self.pos = start_pos
         self.color_id = color_id
         self.tire_angle = 0
         self.speed = 0
+        self.game = game
+
+    def redraw(self):
+        self.movement_calc()
+        self.image_rect = self.image.get_rect(center=self.game.convert(self.pos))
+        self.screen.blit(self.image, self.image_rect)
 
     def movement_calc(self):
-        pass
+        self.pos[1] -= self.speed
 
     def accelerate(self):
-        self.speed += 1
+        self.speed += 0.1
 
     def reverse(self):
-        self.speed -= 1
+        self.speed -= 0.1
 
-    def rescale(self, game):
+    def rescale(self):
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.image = pg.transform.scale(self.image, game.convert((2, 4), 0))
-        self.image_rect = self.image.get_rect(center=game.convert(self.pos))
-        self.screen.blit(self.image, self.image_rect)
+        self.image = pg.transform.scale(self.image, self.game.convert((2, 4), 0))
 
 
 

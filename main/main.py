@@ -3,6 +3,8 @@ import os.path
 from button import Button
 import sys
 import numpy as np
+from pygame import gfxdraw
+import sympy as sym
 pg.init()
 
 
@@ -46,20 +48,34 @@ class MainMenu():
 
 
 class Game():
+    TRACK_WIDTH = 6
+    BEZIER_POINTS = [((-6, 0), (-7, -20), (-5, -38)), ((-5, -38), (-3, -51), (2, -61)), ((2, -61), (15, -77), (25, -60)), ((25, -60), (34, -50), (54, -52)), ((54, -52), (76, -53), (76, -26)), ((76, -26), (78, -8), (40, -16)), ((40, -16), (15, -18), (36, -9)), ((36, -9), (60, -5), (126, -6)), ((126, -6), (144, -14), (110, -30)), ((110, -30), (96, -38), (115, -61)), ((115, -61), (140, -93), (156, -60)), ((156, -60), (172, -23), (195, 17)), ((195, 17), (208, 49), (168, 47)), ((168, 47), (-8, 48), (-19, 42)), ((-19, 42), (-34, 40), (-13, 18)), ((-13, 18), (-5, 13), (-6, 0)), ((-6, 0), (0, 0), (6, 0)), ((6, 0), (9, 13), (2, 21)), ((2, 21), (-22, 36), (11, 35)), ((11, 35), (52, 35), (166, 35)), ((166, 35), (190, 32), (145, -46)), ((145, -46), (139, -72), (126, -51)), ((126, -51), (117, -42), (140, -32)), ((140, -32), (162, -15), (152, 0)), ((152, 0), (148, 18), (19, -3)), ((19, -3), (-4, -11), (23, -28)), ((23, -28), (33, -31), (50, -24)), ((50, -24), (70, -22), (62, -37)), ((62, -37), (56, -44), (36, -43)), ((36, -43), (29, -43), (25, -47)), ((25, -47), (21, -50), (18, -56)), ((18, -56), (13, -64), (9, -52)), ((9, -52), (4, -36), (6, 0)),  ]
+    RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
+        self.generate_track_points()
         self.screen.fill((0,0,0))
         self.Player = PlayerCar(self.screen, (0, 0))
         self.rescale()
+
+    def generate_track_points(self):
+        for points in self.BEZIER_POINTS:
+            t = sym.Symbol('t')
+            Bx = (1 - t)*((1 - t)*points[0][0] + t*points[1][0]) + t*((1 - t)*points[1][0] + t*points[2][0])
+            By = (1 - t)*((1 - t)*points[0][1] + t*points[1][1]) + t*((1 - t)*points[1][1] + t*points[2][1])
+
+
+            steps = (round(i * 0.1, 2) for i in range(11))
+            for step in steps:
+                self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
 
     def convert(self, gamev, ofssc = 1):
         return np.matmul((ofssc, *gamev), self.coord_conversion)
 
     def redraw(self):
-        self.screen.fill((0,0,0))
-        self.screen.blit(self.bg, self.bg_rect)
+        self.screen.fill((78, 217, 65))
+        self.background()
         self.Player.rescale(self)
-
 
     def create_matrix(self, center, zoom):
         s_x, s_y = self.screen.get_size()
@@ -68,13 +84,14 @@ class Game():
         self.coord_conversion = scale
 
     def background(self):
-        self.bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/race_track.png')
-        self.bg = pg.transform.scale(self.bg, self.convert((224, 155), 0))
-        self.bg_rect = self.bg.get_rect(center=self.convert((0, 0)))
+        screen_points = []
+        for point in self.RACETRACK_POINTS:
+            screen_points.append(self.convert(point))
+        pg.gfxdraw.filled_polygon(self.screen, screen_points, (0, 0, 0))
 
 
     def rescale(self):
-        self.create_matrix((0, 0), 0.2)
+        self.create_matrix((60, 0), 0.1)
         self.Player.rescale(self)
         self.background()
 
@@ -112,6 +129,7 @@ class Mainloop():
         while self.running:
             self.scene.redraw()
 
+            #pg.display.flip()
             pg.display.update()
             self.clock.tick(60)
             for event in pg.event.get():

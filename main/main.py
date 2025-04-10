@@ -167,6 +167,7 @@ class Car():
         self.color_id = color_id
         self.tire_angle = 0
         self.speed = 0
+        self.radius = 0
         self.game = game
 
     def redraw(self):
@@ -174,7 +175,14 @@ class Car():
         self.screen.blit(self.image, self.image_rect)
 
     def movement_calc(self):
+        
         self.pos[1] -= self.speed
+
+    def turn(self, direct):
+        if direct:
+            self.radius += 1
+        else:
+            self.redius -= 1
 
     def accelerate(self):
         self.speed += 0.1

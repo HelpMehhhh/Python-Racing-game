@@ -56,6 +56,7 @@ class Game():
         self.screen = screen
         self.generate_track_points()
         self.screen.fill((0,0,0))
+        self.zoom = 0.4
         self.Player = PlayerCar(self.screen, self, [0, 0])
         self.rescale()
 
@@ -74,10 +75,14 @@ class Game():
         return np.matmul((ofssc, *gamev), self.coord_conversion)
 
     def redraw(self):
-        self.create_matrix(self.Player.pos, 0.1)
+        self.Player.movement_calc()
+        self.create_matrix(self.Player.pos, self.zoom)
         self.screen.fill((78, 217, 65))
         self.background()
         self.Player.redraw()
+
+
+
 
     def create_matrix(self, center, zoom):
         s_x, s_y = self.screen.get_size()
@@ -93,7 +98,7 @@ class Game():
 
 
     def rescale(self):
-        self.create_matrix((0, 0), 0.1)
+        self.create_matrix(self.Player.pos, self.zoom)
         self.Player.rescale()
         self.background()
 
@@ -165,7 +170,6 @@ class Car():
         self.game = game
 
     def redraw(self):
-        self.movement_calc()
         self.image_rect = self.image.get_rect(center=self.game.convert(self.pos))
         self.screen.blit(self.image, self.image_rect)
 

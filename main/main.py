@@ -161,6 +161,7 @@ class Car():
         self.pos = start_pos
         self.color_id = color_id
         self.tire_angle = 0
+        self.car_angle
         self.speed = 0
         self.game = game
 
@@ -170,13 +171,7 @@ class Car():
         self.screen.blit(self.image, self.image_rect)
 
     def movement_calc(self):
-        self.pos[1] -= self.speed
-
-    def accelerate(self):
-        self.speed += 0.1
-
-    def reverse(self):
-        self.speed -= 0.1
+        
 
     def rescale(self):
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
@@ -191,10 +186,19 @@ class PlayerCar(Car):
 
     def control(self, event):
         if event.key == pg.K_w:
-            self.accelerate()
+            self.speed += 0.1
 
         if event.key == pg.K_s:
-            self.reverse()
+            self.speed -= 0.1
+
+        if event.key == pg.K_d:
+            if self.tire_angle < 80:
+                self.tire_angle += 5
+
+        if event.key == pg.K_a:
+            if self.tire_angle > -80:
+                self.tire_angle -= 5
+
 
 
 

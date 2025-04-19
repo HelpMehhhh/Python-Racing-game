@@ -5,8 +5,8 @@ import sys
 import numpy as np
 from pygame import gfxdraw
 import sympy as sym
+from enum import IntEnum
 pg.init()
-pg.key.set_repeat(200)
 
 FRAME_RATE = 60
 
@@ -100,7 +100,7 @@ class Game():
         self.background()
 
     def events(self, event):
-        if event.type == pg.KEYDOWN:
+        if event.type in (pg.KEYDOWN, pg.KEYUP):
             self.Player.control(event)
 
 
@@ -162,7 +162,7 @@ class Car():
         self.screen = screen
         self.pos = start_pos
         self.color_id = color_id
-        self.tire_angle = 0
+        self.turning_angle = 0
         self.tire_direct = 0
         self.car_angle = 0
         self.prev_car_angle = 0
@@ -178,7 +178,7 @@ class Car():
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
-        self.tire_direct = self.car_angle + self.tire_angle
+        self.tire_direct = self.car_angle + self.turning_angle
 
 
         self.pos[0] += self.speed*np.cos(np.radians(self.tire_direct+90))
@@ -202,9 +202,19 @@ class Car():
 
 
 
+
 class PlayerCar(Car):
+    class KeyState(IntEnum):
+        left = 1
+        center = 0
+        right = -1
+
+
+    MAX_TURN_SPEED=6
+
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
+        self.keystate = self.KeyState.center
 
     def control(self, event):
         if event.key == pg.K_w:
@@ -213,13 +223,29 @@ class PlayerCar(Car):
         if event.key == pg.K_s:
             self.speed -= self.speed_unit
 
-        if event.key == pg.K_d:
-            if self.tire_angle < 80:
-                self.tire_angle -= 5
+        if (event.type == pg.KEYUP):
+            if (event.key in (pg.K_d, pg.K_a)):
+                self.keystate = self.KeyState.center
+        elif (event.type == pg.KEYDOWN):
+            if (event.key == pg.K_d):
+                self.keystate = self.KeyState.right
+            elif (event.key == pg.K_a):
+                self.keystate = self.KeyState.left
 
-        if event.key == pg.K_a:
-            if self.tire_angle > -80:
-                self.tire_angle += 5
+    def movement_calc(self):
+        chg = 0.08*abs(self.turning_angle) + 0.2
+        if self.keystate == self.KeyState.center:
+            if abs(self.turning_angle) > chg:
+                self.turning_angle += chg if (self.turning_angle < 0) else -chg
+            else:
+                self.turning_angle = 0
+        else:
+            self.turning_angle += chg*self.keystate
+            maxTurn = self.MAX_TURN_SPEED*np.log(1+self.speed)
+            if abs(self.turning_angle) > maxTurn:
+                self.turning_angle = self.keystate * maxTurn
+
+        super().movement_calc()
 
 
 

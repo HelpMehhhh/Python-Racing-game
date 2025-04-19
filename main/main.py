@@ -210,7 +210,7 @@ class PlayerCar(Car):
         right = -1
 
 
-    MAX_TURN_SPEED=6
+    MAX_TURN_SPEED=1
 
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
@@ -241,7 +241,7 @@ class PlayerCar(Car):
                 self.turning_angle = 0
         else:
             self.turning_angle += chg*self.keystate
-            maxTurn = self.MAX_TURN_SPEED*np.log(1+self.speed)
+            maxTurn = self.MAX_TURN_SPEED*np.log(1+8*self.speed)
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
 

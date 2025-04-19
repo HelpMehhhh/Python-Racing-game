@@ -8,6 +8,8 @@ import sympy as sym
 pg.init()
 pg.key.set_repeat(200)
 
+FRAME_RATE = 60
+
 
 class Settings():
     def __init__(self, screen):
@@ -81,9 +83,6 @@ class Game():
         self.background()
         self.Player.redraw()
 
-
-
-
     def create_matrix(self, center, zoom):
         s_x, s_y = self.screen.get_size()
         scale = np.array([[0, 0], [s_x*(0.05208*zoom), 0], [0, s_y*(0.09259*zoom)]])
@@ -96,10 +95,8 @@ class Game():
             screen_points.append(self.convert(point))
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
-
     def rescale(self):
         self.create_matrix(self.Player.pos, self.zoom)
-        self.Player.rescale()
         self.background()
 
     def events(self, event):
@@ -138,7 +135,7 @@ class Mainloop():
 
             #pg.display.flip()
             pg.display.update()
-            self.clock.tick(60)
+            self.clock.tick(FRAME_RATE)
             for event in pg.event.get():
                 r = self.scene.events(event)
                 if r:
@@ -166,28 +163,42 @@ class Car():
         self.pos = start_pos
         self.color_id = color_id
         self.tire_angle = 0
-        self.car_angle
+        self.tire_direct = 0
+        self.car_angle = 0
+        self.prev_car_angle = 0
         self.speed = 0
         self.radius = 0
         self.game = game
+        self.speed_unit = round(1/FRAME_RATE, 2) #Essentially 1 unit means 1 meter per second
+
 
     def redraw(self):
-        self.image_rect = self.image.get_rect(center=self.game.convert(self.pos))
-        self.screen.blit(self.image, self.image_rect)
+        self.transform()
+        self.car_rect = self.car.get_rect(center=self.game.convert(self.pos))
+        self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
-        self.pos[1] -= self.speed
+        self.tire_direct = self.car_angle + self.tire_angle
 
-    def accelerate(self):
-        self.speed += 0.1
 
-    def reverse(self):
-        self.speed -= 0.1
+        self.pos[0] += self.speed*np.cos(np.radians(self.tire_direct+90))
+        self.pos[1] -= self.speed*np.sin(np.radians(self.tire_direct+90))
 
-    def rescale(self):
-        self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.image = pg.transform.scale(self.image, self.game.convert((2, 4), 0))
+        self.car_angle = self.tire_direct
+        #self.car_angle = self.tire_direct
+        if self.car_angle >= 360 or self.car_angle <= -360: self.car_angle = 0
 
+    def car_rotation(self):
+        if self.car_angle != self.prev_car_angle:
+            self.car = pg.transform.rotate(self.car, self.car_angle)
+            self.prev_car_angle = self.car_angle
+        else:
+            self.car = pg.transform.rotate(self.car, self.prev_car_angle)
+
+    def transform(self):
+        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
+        self.car = pg.transform.scale(self.car, self.game.convert((2, 4), 0))
+        self.car_rotation()
 
 
 
@@ -197,18 +208,18 @@ class PlayerCar(Car):
 
     def control(self, event):
         if event.key == pg.K_w:
-            self.speed += 0.1
+            self.speed += self.speed_unit
 
         if event.key == pg.K_s:
-            self.speed -= 0.1
+            self.speed -= self.speed_unit
 
         if event.key == pg.K_d:
             if self.tire_angle < 80:
-                self.tire_angle += 5
+                self.tire_angle -= 5
 
         if event.key == pg.K_a:
             if self.tire_angle > -80:
-                self.tire_angle -= 5
+                self.tire_angle += 5
 
 
 

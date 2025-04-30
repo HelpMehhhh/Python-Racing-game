@@ -244,7 +244,7 @@ class PlayerCar(Car):
 
 
     def movement_calc(self):
-        chg = 0.1*abs(self.turning_angle) + 0.2
+        chg = 0.1*abs(self.turning_angle) + 0.6
         if self.keystate == self.KeyState.center:
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
@@ -252,15 +252,21 @@ class PlayerCar(Car):
                 self.turning_angle = 0
         else:
             self.turning_angle += chg*self.keystate
-            maxTurn = self.MAX_TURN_SPEED*np.log(1+8*self.speed)
+            maxTurn = self.MAX_TURN_SPEED*np.log(1+8*abs(self.speed))
+
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
+            print(maxTurn)
+        print(self.speed)
+        
 
         if self.accelstate != self.AccelState.const:
             if self.accelstate == self.AccelState.deccel:
-                self.speed -= 3*self.speed_unit
+                self.speed -= 2.5*self.speed_unit
+                if self.speed < 0: self.speed = 0
             else:
                 self.speed += 1*self.speed_unit
+        if self.speed < 0: self.speed = 0
         super().movement_calc()
 
 

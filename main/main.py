@@ -213,7 +213,7 @@ class PlayerCar(Car):
         const = 0
         deccel = -1
 
-    MAX_TURN_SPEED=2
+    MAX_TURN_SPEED=0.2
 
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
@@ -252,13 +252,13 @@ class PlayerCar(Car):
                 self.turning_angle = 0
         else:
             self.turning_angle += chg*self.keystate
-            maxTurn = self.MAX_TURN_SPEED*np.log(1+8*abs(self.speed))
-
+            #maxTurn = self.MAX_TURN_SPEED*np.log(1+8*abs(self.speed))
+            maxTurn = (1/(abs(self.speed))) * self.MAX_TURN_SPEED
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
             print(maxTurn)
-        print(self.speed)
-        
+            print(self.speed)
+
 
         if self.accelstate != self.AccelState.const:
             if self.accelstate == self.AccelState.deccel:

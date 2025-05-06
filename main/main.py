@@ -6,6 +6,7 @@ import numpy as np
 from pygame import gfxdraw
 import sympy as sym
 from enum import IntEnum
+
 pg.init()
 
 FRAME_RATE = 60
@@ -101,7 +102,13 @@ class Game():
 
     def events(self, event):
         if event.type in (pg.KEYDOWN, pg.KEYUP):
+            if event.key == pg.K_LEFT and self.zoom > 0.08:
+                self.zoom -= 0.01
+            if event.key == pg.K_RIGHT and self.zoom < 0.5:
+                self.zoom += 0.01
+                print(self.zoom)
             self.Player.control(event)
+
 
 
 
@@ -131,12 +138,14 @@ class Mainloop():
     def main_loop(self):
         self.scene.rescale()
         while self.running:
+
             self.scene.redraw()
 
-            #pg.display.flip()
-            pg.display.update()
-            self.clock.tick(FRAME_RATE)
+
+            pg.display.flip()
+
             for event in pg.event.get():
+                self.clock.tick(FRAME_RATE)
                 r = self.scene.events(event)
                 if r:
                     if r[0] == 1: self.change_scene(r[1])
@@ -155,6 +164,15 @@ class Mainloop():
 
 
 
+class Hud():
+    def __init__(self):
+        pass
+
+
+    def speedometer(self):
+        pass
+
+
 
 class Car():
     #color id refers to how the car image files are named 1 through 6
@@ -169,7 +187,7 @@ class Car():
         self.speed = 0
         self.radius = 0
         self.game = game
-        self.speed_unit = round(1/FRAME_RATE, 2) #Essentially 1 unit means 1 meter per second
+        self.speed_unit = round(1/FRAME_RATE, 2)
 
 
     def redraw(self):
@@ -219,6 +237,7 @@ class PlayerCar(Car):
         Car.__init__(self, screen, start_pos, color_id)
         self.keystate = self.KeyState.center
         self.accelstate = self.AccelState.const
+        self.a = 0
 
     def control(self, event):
         if event.key == pg.K_UP:
@@ -255,20 +274,21 @@ class PlayerCar(Car):
             #maxTurn = self.MAX_TURN_SPEED*np.log(1+8*abs(self.speed))
             if not abs(self.speed): maxTurn = 0
             else:
-                maxTurn = (0.2/(abs(self.speed)+0.1)) + 1.5
+                maxTurn = (0.2/(abs(self.speed)+0.1)) + 3
 
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
-            print(maxTurn)
+
             print(self.speed)
+
 
 
         if self.accelstate != self.AccelState.const:
             if self.accelstate == self.AccelState.deccel:
-                self.speed -= 2.5*self.speed_unit
+                self.speed -= 3*self.speed_unit
                 if self.speed < 0: self.speed = 0
             else:
-                self.speed += 1*self.speed_unit
+                self.speed += 1.5*self.speed_unit
         if self.speed < 0: self.speed = 0
         super().movement_calc()
 

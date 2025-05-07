@@ -274,7 +274,7 @@ class PlayerCar(Car):
             #maxTurn = self.MAX_TURN_SPEED*np.log(1+8*abs(self.speed))
             if not abs(self.speed): maxTurn = 0
             else:
-                maxTurn = (0.2/(abs(self.speed)+0.1)) + 3
+                maxTurn = (0.15/(abs(self.speed)+0.1)) + 3.5
 
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn

@@ -62,6 +62,7 @@ class Game():
         self.zoom = 0.4
         self.Player = PlayerCar(self.screen, self, [0, 0])
         self.rescale()
+        self.rotation = 0
 
     def generate_track_points(self):
         for points in self.BEZIER_POINTS:
@@ -84,7 +85,10 @@ class Game():
         self.background()
         self.Player.redraw()
 
-    def create_matrix(self, center, zoom):
+    def create_matrix(self, center, zoom, rotation):
+
+
+
         s_x, s_y = self.screen.get_size()
         scale = np.array([[0, 0], [s_x*(0.05208*zoom), 0], [0, s_y*(0.09259*zoom)]])
         scale[0] = -np.matmul((1, *center), scale)+(s_x/2, s_y/2)
@@ -97,7 +101,7 @@ class Game():
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
     def rescale(self):
-        self.create_matrix(self.Player.pos, self.zoom)
+        self.create_matrix(self.Player.pos, self.zoom, self.rotation)
         self.background()
 
     def events(self, event):
@@ -271,7 +275,6 @@ class PlayerCar(Car):
                 self.turning_angle = 0
         else:
             self.turning_angle += chg*self.keystate
-            #maxTurn = self.MAX_TURN_SPEED*np.log(1+8*abs(self.speed))
             if not abs(self.speed): maxTurn = 0
             else:
                 maxTurn = (0.15/(abs(self.speed)+0.1)) + 3.5

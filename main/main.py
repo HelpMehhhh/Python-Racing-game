@@ -59,10 +59,11 @@ class Game():
         self.screen = screen
         self.generate_track_points()
         self.screen.fill((0,0,0))
+        self.rotation = 70
         self.zoom = 0.4
         self.Player = PlayerCar(self.screen, self, [0, 0])
         self.rescale()
-        self.rotation = 0
+
 
     def generate_track_points(self):
         for points in self.BEZIER_POINTS:
@@ -76,23 +77,27 @@ class Game():
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
 
     def convert(self, gamev, ofssc = 1):
-        return np.matmul((ofssc, *gamev), self.coord_conversion)
+        new_point = np.matmul((ofssc, *gamev), self.coord_conversion)
+        if ofssc: return np.matmul(new_point, self.rotation_matrix)
+        else: return new_point
 
     def redraw(self):
         self.Player.movement_calc()
-        self.create_matrix(self.Player.pos, self.zoom)
+        self.create_matrix(self.Player.pos)
         self.screen.fill((78, 217, 65))
         self.background()
         self.Player.redraw()
 
-    def create_matrix(self, center, zoom, rotation):
+    def create_matrix(self, center):
 
 
 
         s_x, s_y = self.screen.get_size()
-        scale = np.array([[0, 0], [s_x*(0.05208*zoom), 0], [0, s_y*(0.09259*zoom)]])
+        scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]])
         scale[0] = -np.matmul((1, *center), scale)+(s_x/2, s_y/2)
+        rotate = np.array([[np.cos(np.radians(self.rotation)), -(np.sin(np.radians(self.rotation)))], [np.sin(np.radians(self.rotation)), np.cos(np.radians(self.rotation))]])
         self.coord_conversion = scale
+        self.rotation_matrix = rotate
 
     def background(self):
         screen_points = []
@@ -101,14 +106,14 @@ class Game():
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
     def rescale(self):
-        self.create_matrix(self.Player.pos, self.zoom, self.rotation)
+        self.create_matrix(self.Player.pos)
         self.background()
 
     def events(self, event):
         if event.type in (pg.KEYDOWN, pg.KEYUP):
             if event.key == pg.K_LEFT and self.zoom > 0.08:
                 self.zoom -= 0.01
-            if event.key == pg.K_RIGHT and self.zoom < 0.5:
+            if event.key == pg.K_RIGHT and self.zoom < 0.8:
                 self.zoom += 0.01
                 print(self.zoom)
             self.Player.control(event)

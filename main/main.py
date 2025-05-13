@@ -59,9 +59,10 @@ class Game():
         self.screen = screen
         self.generate_track_points()
         self.screen.fill((0,0,0))
-        self.rotation = 70
+        self.rotation = 0
         self.zoom = 0.4
         self.Player = PlayerCar(self.screen, self, [0, 0])
+        self.screen_center = self.Player.pos
         self.rescale()
 
 
@@ -77,27 +78,30 @@ class Game():
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
 
     def convert(self, gamev, ofssc = 1):
-        new_point = np.matmul((ofssc, *gamev), self.coord_conversion)
-        if ofssc: return np.matmul(new_point, self.rotation_matrix)
-        else: return new_point
+        if ofssc:
+            origin_point = (gamev[0] + (self.screen_center[0]*-1), gamev[1] + (self.screen_center[1]*-1))
+            rotated_point = np.matmul(origin_point, self.rotation_matrix)
+            new_point = (rotated_point[0] + self.screen_center[0], rotated_point[1] + self.screen_center[1])
+            return np.matmul((ofssc, *new_point), self.coord_conversion)
+        else: return np.matmul((ofssc, *gamev), self.coord_conversion)
 
     def redraw(self):
         self.Player.movement_calc()
-        self.create_matrix(self.Player.pos)
+        self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
         self.Player.redraw()
-
-    def create_matrix(self, center):
-
+        self.rotation = self.Player.car_angle
 
 
+    def create_matrix(self):
         s_x, s_y = self.screen.get_size()
-        scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]])
-        scale[0] = -np.matmul((1, *center), scale)+(s_x/2, s_y/2)
-        rotate = np.array([[np.cos(np.radians(self.rotation)), -(np.sin(np.radians(self.rotation)))], [np.sin(np.radians(self.rotation)), np.cos(np.radians(self.rotation))]])
-        self.coord_conversion = scale
+        rotate = np.array([[np.cos(np.radians(self.rotation)), (np.sin(np.radians(self.rotation)))], [-np.sin(np.radians(self.rotation)), np.cos(np.radians(self.rotation))]])
         self.rotation_matrix = rotate
+        scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]])
+        scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)
+        self.coord_conversion = scale
+
 
     def background(self):
         screen_points = []
@@ -106,7 +110,7 @@ class Game():
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
     def rescale(self):
-        self.create_matrix(self.Player.pos)
+        self.create_matrix()
         self.background()
 
     def events(self, event):
@@ -215,17 +219,9 @@ class Car():
         #self.car_angle = self.tire_direct
         if self.car_angle >= 360 or self.car_angle <= -360: self.car_angle = 0
 
-    def car_rotation(self):
-        if self.car_angle != self.prev_car_angle:
-            self.car = pg.transform.rotate(self.car, self.car_angle)
-            self.prev_car_angle = self.car_angle
-        else:
-            self.car = pg.transform.rotate(self.car, self.prev_car_angle)
-
     def transform(self):
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
         self.car = pg.transform.scale(self.car, self.game.convert((2, 4), 0))
-        self.car_rotation()
 
 
 

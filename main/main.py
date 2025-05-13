@@ -6,6 +6,9 @@ import numpy as np
 from pygame import gfxdraw
 import sympy as sym
 from enum import IntEnum
+import cProfile
+import numba
+from numba import jit
 
 pg.init()
 
@@ -77,13 +80,28 @@ class Game():
             for step in steps:
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
 
-    def convert(self, gamev, ofssc = 1):
+    def convert_passer(self, gamev, ofssc = 1):
+        npgamev = np.array([*gamev], dtype=np.float64)
+        screen_center = np.array([*self.screen_center], dtype=np.float64)
+
+        return self.convert(npgamev, screen_center, self.rotation_matrix, self.coord_conversion, ofssc)
+
+    @staticmethod
+    @jit
+    def convert(npgamev, screen_center, rot_m, coordc_m, ofssc):
         if ofssc:
-            origin_point = (gamev[0] + (self.screen_center[0]*-1), gamev[1] + (self.screen_center[1]*-1))
-            rotated_point = np.matmul(origin_point, self.rotation_matrix)
-            new_point = (rotated_point[0] + self.screen_center[0], rotated_point[1] + self.screen_center[1])
-            return np.matmul((ofssc, *new_point), self.coord_conversion)
-        else: return np.matmul((ofssc, *gamev), self.coord_conversion)
+            origin_point = np.array([npgamev[0] - screen_center[0], npgamev[1] - screen_center[1]], dtype=np.float64)
+
+            rotated_point = np.dot(origin_point, rot_m)
+
+            new_point = np.array([rotated_point[0] + screen_center[0], rotated_point[1] + screen_center[1]], dtype=np.float64)
+            result = np.dot(np.array([ofssc, *new_point], dtype=np.float64), coordc_m)
+            return result
+
+        else:
+            result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
+            return result
+
 
     def redraw(self):
         self.Player.movement_calc()
@@ -96,9 +114,9 @@ class Game():
 
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
-        rotate = np.array([[np.cos(np.radians(self.rotation)), (np.sin(np.radians(self.rotation)))], [-np.sin(np.radians(self.rotation)), np.cos(np.radians(self.rotation))]])
+        rotate = np.array([[np.cos(np.radians(self.rotation)), (np.sin(np.radians(self.rotation)))], [-np.sin(np.radians(self.rotation)), np.cos(np.radians(self.rotation))]], dtype=np.float64)
         self.rotation_matrix = rotate
-        scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]])
+        scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
 
@@ -106,7 +124,7 @@ class Game():
     def background(self):
         screen_points = []
         for point in self.RACETRACK_POINTS:
-            screen_points.append(self.convert(point))
+            screen_points.append(self.convert_passer(point))
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
     def rescale(self):
@@ -119,7 +137,6 @@ class Game():
                 self.zoom -= 0.01
             if event.key == pg.K_RIGHT and self.zoom < 0.8:
                 self.zoom += 0.01
-                print(self.zoom)
             self.Player.control(event)
 
 
@@ -156,9 +173,11 @@ class Mainloop():
 
 
             pg.display.flip()
-
+            t = self.clock.tick(FRAME_RATE)
+            print(t)
             for event in pg.event.get():
-                self.clock.tick(FRAME_RATE)
+
+
                 r = self.scene.events(event)
                 if r:
                     if r[0] == 1: self.change_scene(r[1])
@@ -205,7 +224,7 @@ class Car():
 
     def redraw(self):
         self.transform()
-        self.car_rect = self.car.get_rect(center=self.game.convert(self.pos))
+        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
@@ -221,7 +240,7 @@ class Car():
 
     def transform(self):
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.car = pg.transform.scale(self.car, self.game.convert((2, 4), 0))
+        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
 
 
 
@@ -268,7 +287,7 @@ class PlayerCar(Car):
 
 
     def movement_calc(self):
-        chg = 0.1*abs(self.turning_angle) + 0.6
+        chg = 0.1*abs(self.turning_angle) + 0.8
         if self.keystate == self.KeyState.center:
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
@@ -278,12 +297,10 @@ class PlayerCar(Car):
             self.turning_angle += chg*self.keystate
             if not abs(self.speed): maxTurn = 0
             else:
-                maxTurn = (0.15/(abs(self.speed)+0.1)) + 3.5
+                maxTurn = (0.15/(abs(self.speed)+0.1)) + 4
 
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
-
-            print(self.speed)
 
 
 
@@ -304,4 +321,5 @@ class PlayerCar(Car):
 
 
 if __name__ == "__main__":
+    #cProfile.run("Mainloop()")
     Mainloop()

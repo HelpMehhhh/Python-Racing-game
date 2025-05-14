@@ -174,7 +174,6 @@ class Mainloop():
 
             pg.display.flip()
             t = self.clock.tick(FRAME_RATE)
-            print(t)
             for event in pg.event.get():
 
 
@@ -219,7 +218,7 @@ class Car():
         self.speed = 0
         self.radius = 0
         self.game = game
-        self.speed_unit = round(1/FRAME_RATE, 2)
+        self.speed_unit = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
 
 
     def redraw(self):
@@ -263,12 +262,8 @@ class PlayerCar(Car):
         self.accelstate = self.AccelState.const
         self.a = 0
 
-    def control(self, event):
-        if event.key == pg.K_UP:
-            self.speed += self.speed_unit
 
-        if event.key == pg.K_DOWN:
-            self.speed -= self.speed_unit
+    def control(self, event):
 
         if (event.type == pg.KEYUP):
             if (event.key in (pg.K_d, pg.K_a)):
@@ -287,7 +282,7 @@ class PlayerCar(Car):
 
 
     def movement_calc(self):
-        chg = 0.1*abs(self.turning_angle) + 0.8
+        chg = 0.1*abs(self.turning_angle) + 0.4
         if self.keystate == self.KeyState.center:
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
@@ -297,7 +292,7 @@ class PlayerCar(Car):
             self.turning_angle += chg*self.keystate
             if not abs(self.speed): maxTurn = 0
             else:
-                maxTurn = (0.15/(abs(self.speed)+0.1)) + 4
+                maxTurn = (0.15/(abs(self.speed)+0.1)) + 2
 
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
@@ -306,11 +301,10 @@ class PlayerCar(Car):
 
         if self.accelstate != self.AccelState.const:
             if self.accelstate == self.AccelState.deccel:
-                self.speed -= 3*self.speed_unit
+                self.speed -= 2*self.speed_unit
                 if self.speed < 0: self.speed = 0
             else:
-                self.speed += 1.5*self.speed_unit
-        if self.speed < 0: self.speed = 0
+                self.speed += 1*self.speed_unit
         super().movement_calc()
 
 

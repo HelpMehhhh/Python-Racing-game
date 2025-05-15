@@ -216,10 +216,14 @@ class Car():
         self.car_angle = 0
         self.prev_car_angle = 0
         self.speed = 0
+        self.max_accel = 8 # 8 meters persecond persecond
+        self.max_deccel = 16
         self.radius = 0
         self.game = game
-        self.speed_unit = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
-
+        self.time_1_frame = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
+        self.clock = pg.time.Clock()
+        self.turn_timer = 0
+        self.speed_timer = 0
 
     def redraw(self):
         self.transform()
@@ -249,7 +253,7 @@ class PlayerCar(Car):
         left = 1
         center = 0
         right = -1
-    class AccelState(IntEnum):
+    class SpeedState(IntEnum):
         accel = 1
         const = 0
         deccel = -1
@@ -259,52 +263,59 @@ class PlayerCar(Car):
     def __init__(self, screen, start_pos, color_id=1):
         Car.__init__(self, screen, start_pos, color_id)
         self.keystate = self.KeyState.center
-        self.accelstate = self.AccelState.const
+        self.speedstate = self.SpeedState.const
         self.a = 0
 
 
     def control(self, event):
-
         if (event.type == pg.KEYUP):
             if (event.key in (pg.K_d, pg.K_a)):
                 self.keystate = self.KeyState.center
             if (event.key in (pg.K_UP, pg.K_DOWN)):
-                self.accelstate = self.AccelState.const
+                self.speed_timer = 0
+                self.speedstate = self.SpeedState.const
         elif (event.type == pg.KEYDOWN):
             if (event.key == pg.K_d):
                 self.keystate = self.KeyState.right
             elif (event.key == pg.K_a):
                 self.keystate = self.KeyState.left
             if (event.key == pg.K_UP):
-                self.accelstate = self.AccelState.accel
+                self.speedstate = self.SpeedState.accel
             elif (event.key == pg.K_DOWN):
-                self.accelstate = self.AccelState.deccel
+                self.speedstate = self.SpeedState.deccel
 
 
     def movement_calc(self):
         chg = 0.1*abs(self.turning_angle) + 0.4
+        time_elapsed = self.clock.tick()
         if self.keystate == self.KeyState.center:
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
             else:
                 self.turning_angle = 0
         else:
+
             self.turning_angle += chg*self.keystate
             if not abs(self.speed): maxTurn = 0
             else:
                 maxTurn = (0.15/(abs(self.speed)+0.1)) + 2
-
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
 
 
 
-        if self.accelstate != self.AccelState.const:
-            if self.accelstate == self.AccelState.deccel:
-                self.speed -= 2*self.speed_unit
+        if self.speedstate != self.SpeedState.const:
+            if self.speedstate == self.SpeedState.deccel and self.speed_timer >= ((1/self.max_deccel)*0.25):
+                self.speed -= 0.25*self.time_1_frame
                 if self.speed < 0: self.speed = 0
-            else:
-                self.speed += 1*self.speed_unit
+                self.speed_timer = 0
+            elif self.speedstate == self.SpeedState.accel and self.speed_timer >= ((1/self.max_accel)*0.25):
+                self.speed += 0.25*self.time_1_frame
+                self.speed_timer = 0
+            self.speed_timer += (time_elapsed/1000)
+        else: self.speed_timer = 0
+
+        print((self.speed/1000)*(FRAME_RATE*3600))
         super().movement_calc()
 
 

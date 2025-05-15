@@ -216,14 +216,13 @@ class Car():
         self.car_angle = 0
         self.prev_car_angle = 0
         self.speed = 0
-        self.max_accel = 8 # 8 meters persecond persecond
-        self.max_deccel = 16
+        self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
+        self.max_deccel = 16/FRAME_RATE/1000
         self.radius = 0
         self.game = game
         self.time_1_frame = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
         self.clock = pg.time.Clock()
         self.turn_timer = 0
-        self.speed_timer = 0
 
     def redraw(self):
         self.transform()
@@ -272,7 +271,6 @@ class PlayerCar(Car):
             if (event.key in (pg.K_d, pg.K_a)):
                 self.keystate = self.KeyState.center
             if (event.key in (pg.K_UP, pg.K_DOWN)):
-                self.speed_timer = 0
                 self.speedstate = self.SpeedState.const
         elif (event.type == pg.KEYDOWN):
             if (event.key == pg.K_d):
@@ -305,15 +303,12 @@ class PlayerCar(Car):
 
 
         if self.speedstate != self.SpeedState.const:
-            if self.speedstate == self.SpeedState.deccel and self.speed_timer >= ((1/self.max_deccel)*0.25):
-                self.speed -= 0.25*self.time_1_frame
+            if self.speedstate == self.SpeedState.deccel:
+                self.speed -= time_elapsed*self.max_deccel
                 if self.speed < 0: self.speed = 0
-                self.speed_timer = 0
-            elif self.speedstate == self.SpeedState.accel and self.speed_timer >= ((1/self.max_accel)*0.25):
-                self.speed += 0.25*self.time_1_frame
-                self.speed_timer = 0
-            self.speed_timer += (time_elapsed/1000)
-        else: self.speed_timer = 0
+            elif self.speedstate == self.SpeedState.accel:
+                self.speed += time_elapsed*self.max_accel
+
 
         print((self.speed/1000)*(FRAME_RATE*3600))
         super().movement_calc()

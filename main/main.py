@@ -229,16 +229,14 @@ class Car():
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
 
-    def movement_calc(self):
-        self.tire_direct = self.car_angle + self.turning_angle
+    def movement_calc(self, time_elapsed):
+        self.car_angle += self.turning_angle*self.speed*time_elapsed
 
+        self.pos[0] += self.speed*np.cos(np.radians(self.car_angle+90))
+        self.pos[1] -= self.speed*np.sin(np.radians(self.car_angle+90))
 
-        self.pos[0] += self.speed*np.cos(np.radians(self.tire_direct+90))
-        self.pos[1] -= self.speed*np.sin(np.radians(self.tire_direct+90))
-
-        self.car_angle = self.tire_direct
-        #self.car_angle = self.tire_direct
-        if self.car_angle >= 360 or self.car_angle <= -360: self.car_angle = 0
+        if self.car_angle >= 360: self.car_angle -= 360
+        if self.car_angle <= -360: self.car_angle += 360
 
     def transform(self):
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
@@ -284,7 +282,8 @@ class PlayerCar(Car):
 
 
     def movement_calc(self):
-        chg = 0.1*abs(self.turning_angle) + 0.4
+        chg = 0.05*abs(self.turning_angle) + 0.01
+        if self.speed > 0.116: chg *= 0.116/self.speed
         time_elapsed = self.clock.tick()
         if self.keystate == self.KeyState.center:
             if abs(self.turning_angle) > chg:
@@ -292,15 +291,11 @@ class PlayerCar(Car):
             else:
                 self.turning_angle = 0
         else:
-
             self.turning_angle += chg*self.keystate
-            if not abs(self.speed): maxTurn = 0
-            else:
-                maxTurn = (0.15/(abs(self.speed)+0.1)) + 2
+            maxTurn = 0.5
+            if self.speed > 0.116: maxTurn *= 0.116/self.speed
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
-
-
 
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
@@ -310,8 +305,8 @@ class PlayerCar(Car):
                 self.speed += time_elapsed*self.max_accel
 
 
-        print((self.speed/1000)*(FRAME_RATE*3600))
-        super().movement_calc()
+        print(((self.speed/1000)*(FRAME_RATE*3600), round(self.turning_angle, 4)))
+        super().movement_calc(time_elapsed)
 
 
 

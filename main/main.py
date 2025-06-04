@@ -76,7 +76,7 @@ class Game():
             By = (1 - t)*((1 - t)*points[0][1] + t*points[1][1]) + t*((1 - t)*points[1][1] + t*points[2][1])
 
 
-            steps = (round(i * 0.1, 2) for i in range(11))
+            steps = (round(i * 0.05, 2) for i in range(21))
             for step in steps:
                 self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
 
@@ -181,6 +181,7 @@ class Mainloop():
                 if r:
                     if r[0] == 1: self.change_scene(r[1])
                 if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE: sys.exit()
                     if event.key == pg.K_F11:
                         if self.fullscreen:
                             self.screen = pg.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pg.RESIZABLE)
@@ -217,7 +218,7 @@ class Car():
         self.prev_car_angle = 0
         self.speed = 0
         self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
-        self.max_deccel = 16/FRAME_RATE/1000
+        self.max_deccel = 20/FRAME_RATE/1000
         self.radius = 0
         self.game = game
         self.time_1_frame = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
@@ -282,7 +283,7 @@ class PlayerCar(Car):
 
 
     def movement_calc(self):
-        chg = 0.05*abs(self.turning_angle) + 0.01
+        chg = 0.08*abs(self.turning_angle) + 0.01
         if self.speed > 0.116: chg *= 0.116/self.speed
         time_elapsed = self.clock.tick()
         if self.keystate == self.KeyState.center:
@@ -305,16 +306,18 @@ class PlayerCar(Car):
                 self.speed += time_elapsed*self.max_accel
 
 
-        print(((self.speed/1000)*(FRAME_RATE*3600), round(self.turning_angle, 4)))
+        #print(((self.speed/1000)*(FRAME_RATE*3600), round(self.turning_angle, 4)))
         super().movement_calc(time_elapsed)
 
 
 
-
+class AiCar(Car):
+    def __init__(self):
+        pass
 
 
 
 
 if __name__ == "__main__":
-    #cProfile.run("Mainloop()")
+    #cProfile.run("Mainloop()", sort="cumtime")
     Mainloop()

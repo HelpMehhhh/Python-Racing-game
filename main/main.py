@@ -112,6 +112,8 @@ class Game():
         self.rotation = self.Player.car_angle
 
 
+
+
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
         rotate = np.array([[np.cos(np.radians(self.rotation)), (np.sin(np.radians(self.rotation)))], [-np.sin(np.radians(self.rotation)), np.cos(np.radians(self.rotation))]], dtype=np.float64)
@@ -123,9 +125,14 @@ class Game():
 
     def background(self):
         screen_points = []
+        checkpoints = [(0,0), (-2.2,-10), (-3.8,-25), (-3, -36), (0, -50), (5, -57.5), (13.2, -60), (20.5, -59), (28, -55), (38.7, -50), (55, -48), (66.6, -40), (69.2, -31.3), (68.3, -22), (62.8, -17), (54.6, -15.8), (40.3, -18.3), (31.9, -19.3), (26.7, -18.2), (24.2, -15.3), (25.5, -10.2), (29.2, -5.9), (33.8, -3.1), (41.9, -0.5), (53.8, 0.9), (65.9, 2), (83.9, 3.3), (103.4, 4.5), (122.5, 3.8), (139.8, -0.4), (144.8, -7), (147.5, -15.5), (145.8, -23.2), (139.5, -28.9), (129.3, -33.4), (122.6, -35.5), (117.1, -40), (116, -48.4), (117.5, -55), (125.5, -63.5), (136.6, -64.3), (145.8, -61.5), (154.6, -52.7), (161.8, -39.5), (169.6, -26.3), (179, -8), (182.7, 10.2), (179.5, -25.8)]
         for point in self.RACETRACK_POINTS:
             screen_points.append(self.convert_passer(point))
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
+        for cpoint in checkpoints:
+            pg.draw.circle(self.screen, "red", self.convert_passer(cpoint), 10)
+
+
 
     def rescale(self):
         self.create_matrix()

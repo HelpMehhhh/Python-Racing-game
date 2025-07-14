@@ -207,6 +207,17 @@ class Hud():
 
 
 class Car():
+    class KeyState(IntEnum):
+        left = 1
+        center = 0
+        right = -1
+    class SpeedState(IntEnum):
+        accel = 1
+        const = 0
+        deccel = -1
+
+    
+    
     #color id refers to how the car image files are named 1 through 6
     def __init__(self, screen, game, start_pos, color_id=1):
         self.screen = screen
@@ -217,70 +228,19 @@ class Car():
         self.car_angle = 0
         self.prev_car_angle = 0
         self.speed = 0
-        self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
-        self.max_deccel = 20/FRAME_RATE/1000
         self.radius = 0
         self.game = game
         self.time_1_frame = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
         self.clock = pg.time.Clock()
         self.turn_timer = 0
+        self.keystate = self.KeyState.center
+        self.speedstate = self.SpeedState.const
+        self.a = 0
 
     def redraw(self):
         self.transform()
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
-
-    def movement_calc(self, time_elapsed):
-        self.car_angle += self.turning_angle*self.speed*time_elapsed
-
-        self.pos[0] += self.speed*np.cos(np.radians(self.car_angle+90))
-        self.pos[1] -= self.speed*np.sin(np.radians(self.car_angle+90))
-
-        if self.car_angle >= 360: self.car_angle -= 360
-        if self.car_angle <= -360: self.car_angle += 360
-
-    def transform(self):
-        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
-
-
-
-
-class PlayerCar(Car):
-    class KeyState(IntEnum):
-        left = 1
-        center = 0
-        right = -1
-    class SpeedState(IntEnum):
-        accel = 1
-        const = 0
-        deccel = -1
-
-
-
-    def __init__(self, screen, start_pos, color_id=1):
-        Car.__init__(self, screen, start_pos, color_id)
-        self.keystate = self.KeyState.center
-        self.speedstate = self.SpeedState.const
-        self.a = 0
-
-
-    def control(self, event):
-        if (event.type == pg.KEYUP):
-            if (event.key in (pg.K_d, pg.K_a)):
-                self.keystate = self.KeyState.center
-            if (event.key in (pg.K_UP, pg.K_DOWN)):
-                self.speedstate = self.SpeedState.const
-        elif (event.type == pg.KEYDOWN):
-            if (event.key == pg.K_d):
-                self.keystate = self.KeyState.right
-            elif (event.key == pg.K_a):
-                self.keystate = self.KeyState.left
-            if (event.key == pg.K_UP):
-                self.speedstate = self.SpeedState.accel
-            elif (event.key == pg.K_DOWN):
-                self.speedstate = self.SpeedState.deccel
-
 
     def movement_calc(self):
         chg = 0.08*abs(self.turning_angle) + 0.01
@@ -305,15 +265,66 @@ class PlayerCar(Car):
             elif self.speedstate == self.SpeedState.accel:
                 self.speed += time_elapsed*self.max_accel
 
+        
+        self.car_angle += self.turning_angle*self.speed*time_elapsed
 
-        #print(((self.speed/1000)*(FRAME_RATE*3600), round(self.turning_angle, 4)))
-        super().movement_calc(time_elapsed)
+        self.pos[0] += self.speed*np.cos(np.radians(self.car_angle+90))
+        self.pos[1] -= self.speed*np.sin(np.radians(self.car_angle+90))
+
+        if self.car_angle >= 360: self.car_angle -= 360
+        if self.car_angle <= -360: self.car_angle += 360
+
+    def transform(self):
+        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
+        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
+
+
+
+
+class PlayerCar(Car):
+    def __init__(self, screen, start_pos, color_id=1):
+        Car.__init__(self, screen, start_pos, color_id)
+        self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
+        self.max_deccel = 20/FRAME_RATE/1000
+        
+        
+        
+    def control(self, event):
+        if (event.type == pg.KEYUP):
+            if (event.key in (pg.K_d, pg.K_a)):
+                self.keystate = self.KeyState.center
+            if (event.key in (pg.K_UP, pg.K_DOWN)):
+                self.speedstate = self.SpeedState.const
+        elif (event.type == pg.KEYDOWN):
+            if (event.key == pg.K_d):
+                self.keystate = self.KeyState.right
+            elif (event.key == pg.K_a):
+                self.keystate = self.KeyState.left
+            if (event.key == pg.K_UP):
+                self.speedstate = self.SpeedState.accel
+            elif (event.key == pg.K_DOWN):
+                self.speedstate = self.SpeedState.deccel
+
+
 
 
 
 class AiCar(Car):
-    def __init__(self):
+    def __init__(self, screen, start_pos, color_id, max_accel, max_deccel):
+        Car.__init__(self, screen, start_pos, color_id)
+        self.max_accel = max_accel/FRAME_RATE/1000 # 8 meters persecond persecond
+        self.max_deccel = max_deccel/FRAME_RATE/1000
+
+
+    def gasbrake(self):
         pass
+    def steer(self, dir):
+        pass
+
+    
+    
+
+    
 
 
 

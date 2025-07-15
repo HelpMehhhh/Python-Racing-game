@@ -290,6 +290,7 @@ class PlayerCar(Car):
         self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = 20/FRAME_RATE/1000
 
+
     def redraw(self, rotation):
         self.transform()
         super().redraw()
@@ -320,13 +321,14 @@ class AiCar(Car):
         self.max_accel = max_accel/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = max_deccel/FRAME_RATE/1000
 
+
     def redraw(self, rotation):
         self.transform(rotation)
         super().redraw()
 
     def transform(self, rotation):
         super().transform()
-        self.car = pg.transform.rotate(self.car, -rotation)
+        self.car = pg.transform.rotate(self.car, -rotation - self.car_angle)
 
 
 

@@ -64,8 +64,8 @@ class Game():
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
-        self.player = PlayerCar(self.screen, self, [0, 0], 0)
-        self.ai_car = AiCar(self.screen, self, [1, 0], 5, 5)
+        self.player = PlayerCar(self.screen, self, [0, 0])
+        self.ai_car = AiCar(self.screen, self, [1, 0], 3, 5, 5)
         self.cars = [self.player, self.ai_car]
         self.screen_center = self.player.pos
         self.rescale()
@@ -93,13 +93,11 @@ class Game():
     def convert(npgamev, screen_center, rot_m, coordc_m, ofssc):
         if ofssc:
 
-                origin_point = np.array([npgamev[0] - screen_center[0], npgamev[1] - screen_center[1]], dtype=np.float64)
-
-                rotated_point = np.dot(origin_point, rot_m)
-
-                new_point = np.array([rotated_point[0] + screen_center[0], rotated_point[1] + screen_center[1]], dtype=np.float64)
-                result = np.dot(np.array([ofssc, *new_point], dtype=np.float64), coordc_m)
-                return result
+            origin_point = np.array([npgamev[0] - screen_center[0], npgamev[1] - screen_center[1]], dtype=np.float64)
+            rotated_point = np.dot(origin_point, rot_m)
+            new_point = np.array([rotated_point[0] + screen_center[0], rotated_point[1] + screen_center[1]], dtype=np.float64)
+            result = np.dot(np.array([ofssc, *new_point], dtype=np.float64), coordc_m)
+            return result
 
         else:
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
@@ -111,7 +109,7 @@ class Game():
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        for car in self.cars: car.redraw()
+        for car in self.cars: car.redraw(self.rotation)
         self.rotation = self.player.car_angle
 
 
@@ -127,7 +125,7 @@ class Game():
     def background(self):
         screen_points = []
         for point in self.RACETRACK_POINTS:
-            screen_points.append(self.convert_passer(point, True))
+            screen_points.append(self.convert_passer(point))
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
     def rescale(self):
@@ -222,7 +220,7 @@ class Car():
 
 
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, game, start_pos, color_id=1, ai=1):
+    def __init__(self, screen, game, start_pos, ai, color_id=1):
         self.ai = ai
         self.screen = screen
         self.pos = start_pos
@@ -242,10 +240,9 @@ class Car():
         self.a = 0
 
     def redraw(self):
-        self.transform()
-        no_rot = ''
-        if self.ai: no_rot=0
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos, {no_rot}))
+        no_rot = 1
+        if self.ai: no_rot=1
+        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
@@ -288,12 +285,14 @@ class Car():
 
 
 class PlayerCar(Car):
-    def __init__(self, screen, start_pos, color_id=1):
-        Car.__init__(self, screen, start_pos, color_id)
+    def __init__(self, screen, game, start_pos, color_id=1):
+        Car.__init__(self, screen, game, start_pos, 0, color_id)
         self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = 20/FRAME_RATE/1000
 
-
+    def redraw(self, rotation):
+        self.transform()
+        super().redraw()
 
     def control(self, event):
         if (event.type == pg.KEYUP):
@@ -316,10 +315,19 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
-    def __init__(self, screen, start_pos, color_id, max_accel, max_deccel, ai=1):
-        Car.__init__(self, screen, start_pos, color_id, ai)
+    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel):
+        Car.__init__(self, screen, game, start_pos, 1, color_id)
         self.max_accel = max_accel/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = max_deccel/FRAME_RATE/1000
+
+    def redraw(self, rotation):
+        self.transform(rotation)
+        super().redraw()
+
+    def transform(self, rotation):
+        super().transform()
+        self.car = pg.transform.rotate(self.car, -rotation)
+
 
 
     def render_radar(self):

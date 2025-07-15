@@ -64,8 +64,10 @@ class Game():
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
-        self.Player = PlayerCar(self.screen, self, [0, 0])
-        self.screen_center = self.Player.pos
+        self.player = PlayerCar(self.screen, self, [0, 0])
+        self.ai_car = AiCar(self.screen, self, [1, 0], 5, 5)
+        self.cars = [self.player, self.ai_car]
+        self.screen_center = self.player.pos
         self.rescale()
 
 
@@ -104,12 +106,12 @@ class Game():
 
 
     def redraw(self):
-        self.Player.movement_calc()
+        for car in self.cars: car.movement_calc()
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        self.Player.redraw()
-        self.rotation = self.Player.car_angle
+        for car in self.cars: car.redraw()
+        self.rotation = self.player.car_angle
 
 
     def create_matrix(self):
@@ -137,7 +139,7 @@ class Game():
                 self.zoom -= 0.01
             if event.key == pg.K_RIGHT and self.zoom < 0.8:
                 self.zoom += 0.01
-            self.Player.control(event)
+            self.player.control(event)
 
 
 

@@ -64,7 +64,7 @@ class Game():
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
-        self.player = PlayerCar(self.screen, self, [0, 0])
+        self.player = PlayerCar(self.screen, self, [0, 0], 0)
         self.ai_car = AiCar(self.screen, self, [1, 0], 5, 5)
         self.cars = [self.player, self.ai_car]
         self.screen_center = self.player.pos
@@ -92,13 +92,14 @@ class Game():
     @jit
     def convert(npgamev, screen_center, rot_m, coordc_m, ofssc):
         if ofssc:
-            origin_point = np.array([npgamev[0] - screen_center[0], npgamev[1] - screen_center[1]], dtype=np.float64)
 
-            rotated_point = np.dot(origin_point, rot_m)
+                origin_point = np.array([npgamev[0] - screen_center[0], npgamev[1] - screen_center[1]], dtype=np.float64)
 
-            new_point = np.array([rotated_point[0] + screen_center[0], rotated_point[1] + screen_center[1]], dtype=np.float64)
-            result = np.dot(np.array([ofssc, *new_point], dtype=np.float64), coordc_m)
-            return result
+                rotated_point = np.dot(origin_point, rot_m)
+
+                new_point = np.array([rotated_point[0] + screen_center[0], rotated_point[1] + screen_center[1]], dtype=np.float64)
+                result = np.dot(np.array([ofssc, *new_point], dtype=np.float64), coordc_m)
+                return result
 
         else:
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
@@ -126,7 +127,7 @@ class Game():
     def background(self):
         screen_points = []
         for point in self.RACETRACK_POINTS:
-            screen_points.append(self.convert_passer(point))
+            screen_points.append(self.convert_passer(point, True))
         pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
 
     def rescale(self):
@@ -218,10 +219,11 @@ class Car():
         const = 0
         deccel = -1
 
-    
-    
+
+
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, game, start_pos, color_id=1):
+    def __init__(self, screen, game, start_pos, color_id=1, ai=1):
+        self.ai = ai
         self.screen = screen
         self.pos = start_pos
         self.color_id = color_id
@@ -241,7 +243,9 @@ class Car():
 
     def redraw(self):
         self.transform()
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
+        no_rot = ''
+        if self.ai: no_rot=0
+        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos, {no_rot}))
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
@@ -267,7 +271,7 @@ class Car():
             elif self.speedstate == self.SpeedState.accel:
                 self.speed += time_elapsed*self.max_accel
 
-        
+
         self.car_angle += self.turning_angle*self.speed*time_elapsed
 
         self.pos[0] += self.speed*np.cos(np.radians(self.car_angle+90))
@@ -288,9 +292,9 @@ class PlayerCar(Car):
         Car.__init__(self, screen, start_pos, color_id)
         self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = 20/FRAME_RATE/1000
-        
-        
-        
+
+
+
     def control(self, event):
         if (event.type == pg.KEYUP):
             if (event.key in (pg.K_d, pg.K_a)):
@@ -312,21 +316,31 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
-    def __init__(self, screen, start_pos, color_id, max_accel, max_deccel):
-        Car.__init__(self, screen, start_pos, color_id)
+    def __init__(self, screen, start_pos, color_id, max_accel, max_deccel, ai=1):
+        Car.__init__(self, screen, start_pos, color_id, ai)
         self.max_accel = max_accel/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = max_deccel/FRAME_RATE/1000
 
 
-    def gasbrake(self):
-        pass
-    def steer(self, dir):
+    def render_radar(self):
         pass
 
-    
-    
+    def tick_radar(self):
+        pass
 
-    
+    def check_collision(self):
+        pass
+
+    def gasbrake(self, choice):
+        pass
+
+    def steer(self, choice):
+        pass
+
+
+
+
+
 
 
 

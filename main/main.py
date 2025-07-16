@@ -6,8 +6,6 @@ import numpy as np
 from pygame import gfxdraw
 import sympy as sym
 from enum import IntEnum
-import cProfile
-import numba
 from numba import jit
 
 pg.init()
@@ -64,9 +62,8 @@ class Game():
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
-        self.player = PlayerCar(self.screen, self, [0, 0])
-        self.ai_car = AiCar(self.screen, self, [1, 0], 3, 5, 5)
-        self.cars = [self.player, self.ai_car]
+        self.player = PlayerCar(self.screen, self, [0, 0.5])
+        self.cars = [self.player, AiCar(self.screen, self, [3, 0], 2, 5, 5), AiCar(self.screen, self, [-3, 0], 3, 5, 5), AiCar(self.screen, self, [3, 6], 4, 5, 5), AiCar(self.screen, self, [-3, 6], 5, 5, 5), AiCar(self.screen, self, [0, 7], 6, 5, 5)]
         self.screen_center = self.player.pos
         self.rescale()
 
@@ -220,8 +217,7 @@ class Car():
 
 
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, game, start_pos, ai, color_id=1):
-        self.ai = ai
+    def __init__(self, screen, game, start_pos, color_id=1):
         self.screen = screen
         self.pos = start_pos
         self.color_id = color_id
@@ -240,8 +236,6 @@ class Car():
         self.a = 0
 
     def redraw(self):
-        no_rot = 1
-        if self.ai: no_rot=1
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
 
@@ -286,7 +280,7 @@ class Car():
 
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, color_id=1):
-        Car.__init__(self, screen, game, start_pos, 0, color_id)
+        Car.__init__(self, screen, game, start_pos, color_id)
         self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = 20/FRAME_RATE/1000
 
@@ -317,7 +311,7 @@ class PlayerCar(Car):
 
 class AiCar(Car):
     def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel):
-        Car.__init__(self, screen, game, start_pos, 1, color_id)
+        Car.__init__(self, screen, game, start_pos, color_id)
         self.max_accel = max_accel/FRAME_RATE/1000 # 8 meters persecond persecond
         self.max_deccel = max_deccel/FRAME_RATE/1000
 
@@ -325,6 +319,7 @@ class AiCar(Car):
     def redraw(self, rotation):
         self.transform(rotation)
         super().redraw()
+        self.tick_radar()
 
     def transform(self, rotation):
         super().transform()
@@ -336,7 +331,13 @@ class AiCar(Car):
         pass
 
     def tick_radar(self):
-        pass
+        for degree in [-80, -40, 0, 40, 80]:
+            length = 10
+            x = self.pos[0] + (np.sin(np.radians(degree + self.car_angle)) * length)
+            y = -self.pos[1] + (np.cos(np.radians(degree + self.car_angle)) * length)
+
+            pg.draw.line(self.screen, (0, 255, 0), self.game.convert_passer(self.pos), self.game.convert_passer((x, y), 0), 2)
+
 
     def check_collision(self):
         pass

@@ -63,7 +63,7 @@ class Game():
         self.rotation = 0
         self.zoom = 0.4
         self.player = PlayerCar(self.screen, self, [0, 0.5])
-        self.cars = [self.player, AiCar(self.screen, self, [3, 0], 2, 5, 5), AiCar(self.screen, self, [-3, 0], 3, 5, 5), AiCar(self.screen, self, [3, 6], 4, 5, 5), AiCar(self.screen, self, [-3, 6], 5, 5, 5), AiCar(self.screen, self, [0, 7], 6, 5, 5)]
+        self.cars = [self.player, AiCar(self.screen, self, [0, -10], 2, 5, 5), AiCar(self.screen, self, [3, 0], 2, 5, 5), AiCar(self.screen, self, [-3, 0], 3, 5, 5), AiCar(self.screen, self, [3, 6], 4, 5, 5), AiCar(self.screen, self, [-3, 6], 5, 5, 5), AiCar(self.screen, self, [0, 7], 6, 5, 5)]
         self.screen_center = self.player.pos
         self.rescale()
 
@@ -331,12 +331,14 @@ class AiCar(Car):
         pass
 
     def tick_radar(self):
-        for degree in [-80, -40, 0, 40, 80]:
-            length = 10
-            x = self.pos[0] + (np.sin(np.radians(degree + self.car_angle)) * length)
-            y = -self.pos[1] + (np.cos(np.radians(degree + self.car_angle)) * length)
+        for i, degree in enumerate([-80, -40, 0, 40, 80]):
+            length = 4
+            x =  self.pos[0] + (np.sin(np.radians(degree + self.car_angle)) * length)
+            y =  self.pos[1] - (np.cos(np.radians(degree + self.car_angle)) * length)
 
-            pg.draw.line(self.screen, (0, 255, 0), self.game.convert_passer(self.pos), self.game.convert_passer((x, y), 0), 2)
+
+            color = ['red', 'green', 'blue', 'yellow', 'orange']
+            pg.draw.line(self.screen, color[i], self.game.convert_passer(self.pos), self.game.convert_passer((x, y)), 2)
 
 
     def check_collision(self):

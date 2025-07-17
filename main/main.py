@@ -83,8 +83,11 @@ class Game():
         npgamev = np.array([*gamev], dtype=np.float64)
         screen_center = np.array([*self.screen_center], dtype=np.float64)
 
-        return self.convert(npgamev, screen_center, self.rotation_matrix, self.coord_conversion, ofssc)
-
+        result = self.convert(npgamev, screen_center, self.rotation_matrix, self.coord_conversion, ofssc)
+        if ofssc:
+            return (result[0],pg.display.Info().current_h - result[1])
+        else: return result
+    
     @staticmethod
     @jit
     def convert(npgamev, screen_center, rot_m, coordc_m, ofssc):
@@ -107,7 +110,7 @@ class Game():
         self.screen.fill((78, 217, 65))
         self.background()
         for car in self.cars: car.redraw(self.rotation)
-        self.rotation = self.player.car_angle
+        self.rotation = -self.player.car_angle
 
 
     def create_matrix(self):
@@ -266,7 +269,7 @@ class Car():
         self.car_angle += self.turning_angle*self.speed*time_elapsed
 
         self.pos[0] += self.speed*np.cos(np.radians(self.car_angle+90))
-        self.pos[1] -= self.speed*np.sin(np.radians(self.car_angle+90))
+        self.pos[1] += self.speed*np.sin(np.radians(self.car_angle+90))
 
         if self.car_angle >= 360: self.car_angle -= 360
         if self.car_angle <= -360: self.car_angle += 360
@@ -323,7 +326,7 @@ class AiCar(Car):
 
     def transform(self, rotation):
         super().transform()
-        self.car = pg.transform.rotate(self.car, -rotation - self.car_angle)
+        self.car = pg.transform.rotate(self.rotation - self.car_angle)
 
 
 

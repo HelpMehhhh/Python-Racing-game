@@ -54,11 +54,8 @@ class MainMenu():
 
 class Game():
     TRACK_WIDTH = 6
-    BEZIER_POINTS = [((-6, 0), (-7, -20), (-5, -38)), ((-5, -38), (-3, -51), (2, -61)), ((2, -61), (15, -77), (25, -60)), ((25, -60), (34, -50), (54, -52)), ((54, -52), (76, -53), (76, -26)), ((76, -26), (78, -8), (40, -16)), ((40, -16), (15, -18), (36, -9)), ((36, -9), (60, -5), (126, -6)), ((126, -6), (144, -14), (110, -30)), ((110, -30), (96, -38), (115, -61)), ((115, -61), (140, -93), (156, -60)), ((156, -60), (172, -23), (195, 17)), ((195, 17), (208, 49), (168, 47)), ((168, 47), (-8, 48), (-19, 42)), ((-19, 42), (-34, 40), (-13, 18)), ((-13, 18), (-5, 13), (-6, 0)), ((-6, 0), (0, 0), (6, 0)), ((6, 0), (9, 13), (2, 21)), ((2, 21), (-22, 36), (11, 35)), ((11, 35), (52, 35), (166, 35)), ((166, 35), (190, 32), (145, -46)), ((145, -46), (139, -72), (126, -51)), ((126, -51), (117, -42), (140, -32)), ((140, -32), (162, -15), (152, 0)), ((152, 0), (148, 18), (19, -3)), ((19, -3), (-4, -11), (23, -28)), ((23, -28), (33, -31), (50, -24)), ((50, -24), (70, -22), (62, -37)), ((62, -37), (56, -44), (36, -43)), ((36, -43), (29, -43), (25, -47)), ((25, -47), (21, -50), (18, -56)), ((18, -56), (13, -64), (9, -52)), ((9, -52), (4, -36), (6, 0)),  ]
-    RACETRACK_POINTS = []
     def __init__(self, screen):
         self.screen = screen
-        self.generate_track_points()
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
@@ -68,17 +65,6 @@ class Game():
         self.rescale()
 
 
-    def generate_track_points(self):
-        for points in self.BEZIER_POINTS:
-            t = sym.Symbol('t')
-            Bx = (1 - t)*((1 - t)*points[0][0] + t*points[1][0]) + t*((1 - t)*points[1][0] + t*points[2][0])
-            By = (1 - t)*((1 - t)*points[0][1] + t*points[1][1]) + t*((1 - t)*points[1][1] + t*points[2][1])
-
-
-            steps = (round(i * 0.05, 2) for i in range(21))
-            for step in steps:
-                self.RACETRACK_POINTS.append((round(Bx.subs(t, step), 3), round(By.subs(t, step), 3)))
-
     def convert_passer(self, gamev, ofssc = 1):
         npgamev = np.array([*gamev], dtype=np.float64)
         screen_center = np.array([*self.screen_center], dtype=np.float64)
@@ -87,7 +73,8 @@ class Game():
         if ofssc:
             return (result[0],pg.display.Info().current_h - result[1])
         else: return result
-    
+
+
     @staticmethod
     @jit
     def convert(npgamev, screen_center, rot_m, coordc_m, ofssc):
@@ -124,13 +111,16 @@ class Game():
 
     def background(self):
         screen_points = []
-        for point in self.RACETRACK_POINTS:
+        points = [(0, 100), (0.0781250000000000, 101.816406250000), (0.312500000000000, 103.515625000000), (0.703125000000000, 105.097656250000), (1.25000000000000, 106.562500000000), (1.95312500000000, 107.910156250000), (2.81250000000000, 109.140625000000), (3.82812500000000, 110.253906250000), (5.00000000000000, 111.250000000000), (6.32812500000000, 112.128906250000), (7.81250000000000, 112.890625000000), (9.45312500000000, 113.535156250000), (11.2500000000000, 114.062500000000), (13.2031250000000, 114.472656250000), (15.3125000000000, 114.765625000000), (17.5781250000000, 114.941406250000), (20,115)]
+        for point in points:
             screen_points.append(self.convert_passer(point))
-        pg.gfxdraw.filled_polygon(self.screen, screen_points, (66, 66, 66))
+        pg.draw.lines(self.screen, (255,255,255), False, screen_points, 4)
+
 
     def rescale(self):
         self.create_matrix()
         self.background()
+
 
     def events(self, event):
         if event.type in (pg.KEYDOWN, pg.KEYUP):
@@ -326,7 +316,7 @@ class AiCar(Car):
 
     def transform(self, rotation):
         super().transform()
-        self.car = pg.transform.rotate(self.rotation - self.car_angle)
+        self.car = pg.transform.rotate(self.car, rotation - self.car_angle)
 
 
 

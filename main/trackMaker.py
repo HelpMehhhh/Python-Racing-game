@@ -3,8 +3,8 @@ import numpy as np
 bez_points = [((0,0),(0,60),(0,100)), ((0,100),(0,115),(20,115)), ((20,115),(40,115),(40,90)), ((40,90),(40,75),(35,70)), ((35,70),(20,60),(40,50)), ((40,50),(70,35),(120,50)), ((120,50),(160,65),(140,80)), ((140,80),(125,95),(100,90)), ((100,90),(60,85),(70,105)), ((70,105),(74,112),(100,110)), ((100,110),(150,105),(190,85)), ((190,85),(215,75),(190,70)), ((190,70),(170,65),(190,55)), ((190,55),(200,50),(210,60)), ((210,60),(220,70),(250,60)), ((250,60),(260,57),(250,45)), ((250,45),(240,35),(205,35)), ((205,35),(180,35),(185,10)), ((185,10),(190,-5),(165,-10)), ((165,-10),(140,-15),(155,25)), ((155,25),(170,60),(130,35)), ((130,35),(118,27),(120,0)), ((120,0),(120,-60),(80,-20)), ((80,-20),(55,0),(40,-50)), ((40,-50),(20,-110),(-20,-70)), ((-20,-70),(-40,-50),(-30,-40)), ((-30,-40),(-7,-20),(-5,-15)), ((-5,-15),(0,-5),(0,0)),]
 THRESHHOLD = 1
 PIECEWISE_POINTS = []
-PARALLEL_POINTS_PLUS = []
-PARALLEL_POINTS_MINUS = []
+PARALLEL_POINTS_PLUS_X = []
+PARALLEL_POINTS_MINUS_X = []
 TRACK_WDITH = 6
 i = 0
 
@@ -38,17 +38,25 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
         l = np.sqrt(((vx)**2)+((vy)**2))
         dy=(TRACK_WDITH/l)*vx
         dx=(TRACK_WDITH/l)*vy
-        p1lp1 = (lp1[0]+dx, lp1[1]-dy)
-        p2lp1 = (lp1[0]-dx, lp1[1]+dy)
-        p1lp2 = (lp1[0]+dx, lp1[1]-dy)
-        p2lp2 = (lp1[0]-dx, lp1[1]+dy)
+        l1_p1 = (lp1[0]+dx, lp1[1]-dy)
+        l2_p1 = (lp1[0]-dx, lp1[1]+dy)
+        l1_p2 = (lp1[0]+dx, lp1[1]-dy)
+        l2_p2 = (lp1[0]-dx, lp1[1]+dy)
 
         if i % 2 == 0:
-            pl1 = 
+            prev_l1_p1 = PARALLEL_POINTS_PLUS_X[-2]
+            prev_l1_p2 = PARALLEL_POINTS_PLUS_X[-1]
+            prev_l2_p1 = PARALLEL_POINTS_MINUS_X[-2]
+            prev_l2_p2 = PARALLEL_POINTS_MINUS_X[-1]
+            t_plus = ((l1_p2[0]-l1_p1[0])*(prev_l1_p1[1]-l1_p1[1])-(l1_p2[1]-l1_p1[1])*(prev_l1_p1[0]-l1_p1[0]))/((l1_p2[1]-l1_p1[1])*(prev_l1_p2[0]-prev_l1_p1[0])-(l1_p2[0]-l1_p1[0])*(prev_l1_p2[1]-prev_l1_p1[1]))
+            t_minus = ((l2_p2[0]-l2_p1[0])*(prev_l2_p1[1]-l2_p1[1])-(l2_p2[1]-l2_p1[1])*(prev_l2_p1[0]-l2_p1[0]))/((l2_p2[1]-l2_p1[1])*(prev_l2_p2[0]-prev_l2_p1[0])-(l2_p2[0]-l2_p1[0])*(prev_l2_p2[1]-prev_l2_p1[1]))
+            assert t_plus < 0, "Angle to small"
+            assert t_minus < 0, "Angle to small"
+            
         else:
 
-            PARALLEL_POINTS_PLUS.extend((p1lp1, p1lp2))
-            PARALLEL_POINTS_MINUS.extend((p2lp1, p2lp2))
+            PARALLEL_POINTS_PLUS_X.extend((l1_p1, l1_p2))
+            PARALLEL_POINTS_MINUS_X.extend((l2_p1, l2_p2))
         PIECEWISE_POINTS.append(lp1)
 
 

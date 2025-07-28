@@ -1,13 +1,14 @@
 import sympy as sym
 import numpy as np
-bez_points = [((0,0),(0,60),(0,100)), ((0,100),(0,115),(20,115)), ((20,115),(40,115),(40,90)), ((40,90),(40,75),(35,70)), ((35,70),(20,60),(40,50)), ((40,50),(70,35),(120,50)), ((120,50),(160,65),(140,80)), ((140,80),(125,95),(100,90)), ((100,90),(60,85),(70,105)), ((70,105),(74,112),(100,110)), ((100,110),(150,105),(190,85)), ((190,85),(215,75),(190,70)), ((190,70),(170,65),(190,55)), ((190,55),(200,50),(210,60)), ((210,60),(220,70),(250,60)), ((250,60),(260,57),(250,45)), ((250,45),(240,35),(205,35)), ((205,35),(180,35),(185,10)), ((185,10),(190,-5),(165,-10)), ((165,-10),(140,-15),(155,25)), ((155,25),(170,60),(130,35)), ((130,35),(118,27),(120,0)), ((120,0),(120,-60),(80,-20)), ((80,-20),(55,0),(40,-50)), ((40,-50),(20,-110),(-20,-70)), ((-20,-70),(-40,-50),(-30,-40)), ((-30,-40),(-7,-20),(-5,-15)), ((-5,-15),(0,-5),(0,0)),]
+bez_points = [((0,0),(0,60),(0,100)), ((0,100),(0,115),(20,115)), ((20,115),(40,115),(40,90)), ((40,90),(40,75),(35,70)), ((35,70),(20,60),(40,50)), ((40,50),(70,35),(120,50)), ((120,50),(160,65),(140,80)), ((140,80),(125,95),(100,90)), ((100,90),(60,85),(70,105)), ((70,105),(74,112),(100,110)), ((100,110),(150,105),(190,85)), ((190,85),(215,75),(190,70)), ((190,70),(170,65),(190,55)), ((190,55),(200,50),(210,60)), ((210,60),(220,70),(250,60)), ((250,60),(260,57),(250,45)), ((250,45),(240,35),(205,35)), ((205,35),(180,35),(185,10)), ((185,10),(190,-5),(165,-10)), ((165,-10),(140,-15),(155,25)), ((155,25),(170,60),(130,35)), ((130,35),(118,27),(120,0)), ((120,0),(120,-60),(80,-20)), ((80,-20),(55,0),(40,-50)), ((40,-50),(20,-110),(-20,-70)), ((-20,-70),(-40,-50),(-30,-40)), ((-30,-40),(-7,-20),(-5,-15)), ((-5,-15),(0,-5),(0,0))]
 THRESHHOLD = 1
 PIECEWISE_POINTS = []
 PARALLEL_POINTS_PLUS_X = []
 PARALLEL_POINTS_MINUS_X = []
+PARALLEL_CUT = []
 TRACK_WDITH = 6
-i = 0
 
+start = True
 def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
     t = sym.Symbol('t')
     Bx = (1 - t)*((1 - t)*bez_point[0][0] + t*bez_point[1][0]) + t*((1 - t)*bez_point[1][0] + t*bez_point[2][0])
@@ -31,8 +32,6 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
             point_maker(bez_point, step_p, lp2, (step_f+(0.5*(step_f-p_step_f))), step_f)
 
     else:
-        global i
-        i += 1
         vx = lp2[0]-lp1[0]
         vy = lp2[1]-lp1[1]
         l = np.sqrt(((vx)**2)+((vy)**2))
@@ -43,20 +42,29 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
         l1_p2 = (lp1[0]+dx, lp1[1]-dy)
         l2_p2 = (lp1[0]-dx, lp1[1]+dy)
 
-        if i % 2 == 0:
-            prev_l1_p1 = PARALLEL_POINTS_PLUS_X[-2]
+
+        global start
+        if not start:
+            prev_l1_p1 = PARALLEL_CUT[-2]
             prev_l1_p2 = PARALLEL_POINTS_PLUS_X[-1]
-            prev_l2_p1 = PARALLEL_POINTS_MINUS_X[-2]
+            prev_l2_p1 = PARALLEL_CUT[-1]
             prev_l2_p2 = PARALLEL_POINTS_MINUS_X[-1]
             t_plus = ((l1_p2[0]-l1_p1[0])*(prev_l1_p1[1]-l1_p1[1])-(l1_p2[1]-l1_p1[1])*(prev_l1_p1[0]-l1_p1[0]))/((l1_p2[1]-l1_p1[1])*(prev_l1_p2[0]-prev_l1_p1[0])-(l1_p2[0]-l1_p1[0])*(prev_l1_p2[1]-prev_l1_p1[1]))
             t_minus = ((l2_p2[0]-l2_p1[0])*(prev_l2_p1[1]-l2_p1[1])-(l2_p2[1]-l2_p1[1])*(prev_l2_p1[0]-l2_p1[0]))/((l2_p2[1]-l2_p1[1])*(prev_l2_p2[0]-prev_l2_p1[0])-(l2_p2[0]-l2_p1[0])*(prev_l2_p2[1]-prev_l2_p1[1]))
             assert t_plus < 0, "Angle to small"
             assert t_minus < 0, "Angle to small"
-            
+            PARALLEL_POINTS_MINUS_X.pop(-1)
+            PARALLEL_POINTS_PLUS_X.pop(-1)
+            PARALLEL_CUT.extend((l1_p1, l2_p1))
+            PARALLEL_POINTS_MINUS_X.append(((prev_l2_p2[0]-prev_l2_p1[0])*t_minus + prev_l2_p1[0], (prev_l2_p2[1]-prev_l2_p1[1])*t_minus + prev_l2_p1[1]))
+            PARALLEL_POINTS_PLUS_X.append(((prev_l1_p2[0]-prev_l1_p1[0])*t_plus + prev_l1_p1[0], (prev_l1_p2[1]-prev_l1_p1[1])*t_plus + prev_l1_p1[1]))
+            PARALLEL_POINTS_MINUS_X.append(l2_p2)
+            PARALLEL_POINTS_PLUS_X.append(l1_p2)
         else:
-
+            start = False
             PARALLEL_POINTS_PLUS_X.extend((l1_p1, l1_p2))
             PARALLEL_POINTS_MINUS_X.extend((l2_p1, l2_p2))
+            PARALLEL_CUT.extend((l1_p1, l2_p1))
         PIECEWISE_POINTS.append(lp1)
 
 
@@ -65,9 +73,11 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
 
 for point in bez_points:
     point_maker(point, point[0], point[2], 0.5, 1)
-#print(PIECEWISE_POINTS)
 
+print(PIECEWISE_POINTS)
+print("                     break                     ")
+print(PARALLEL_POINTS_PLUS_X)
+print("                     break                     ")
+print(PARALLEL_POINTS_MINUS_X)
 
-def get_sides():
-    pass
 

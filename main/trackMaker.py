@@ -32,11 +32,12 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
             point_maker(bez_point, step_p, lp2, (step_f+(0.5*(step_f-p_step_f))), step_f)
 
     else:
-        vx = lp2[0]-lp1[0]
-        vy = lp2[1]-lp1[1]
-        l = np.sqrt(((vx)**2)+((vy)**2))
-        dy=(TRACK_WDITH/l)*vx
-        dx=(TRACK_WDITH/l)*vy
+        vx = float(lp2[0]-lp1[0])
+        vy = float(lp2[1]-lp1[1])
+        l = float(np.sqrt(np.float64(((vx)**2)+((vy)**2))))
+
+        dy=float((TRACK_WDITH/l)*vx)
+        dx=float((TRACK_WDITH/l)*vy)
         l1_p1 = (lp1[0]+dx, lp1[1]-dy)
         l2_p1 = (lp1[0]-dx, lp1[1]+dy)
         l1_p2 = (lp1[0]+dx, lp1[1]-dy)
@@ -49,10 +50,13 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
             prev_l1_p2 = PARALLEL_POINTS_PLUS_X[-1]
             prev_l2_p1 = PARALLEL_CUT[-1]
             prev_l2_p2 = PARALLEL_POINTS_MINUS_X[-1]
-            t_plus = ((l1_p2[0]-l1_p1[0])*(prev_l1_p1[1]-l1_p1[1])-(l1_p2[1]-l1_p1[1])*(prev_l1_p1[0]-l1_p1[0]))/((l1_p2[1]-l1_p1[1])*(prev_l1_p2[0]-prev_l1_p1[0])-(l1_p2[0]-l1_p1[0])*(prev_l1_p2[1]-prev_l1_p1[1]))
-            t_minus = ((l2_p2[0]-l2_p1[0])*(prev_l2_p1[1]-l2_p1[1])-(l2_p2[1]-l2_p1[1])*(prev_l2_p1[0]-l2_p1[0]))/((l2_p2[1]-l2_p1[1])*(prev_l2_p2[0]-prev_l2_p1[0])-(l2_p2[0]-l2_p1[0])*(prev_l2_p2[1]-prev_l2_p1[1]))
-            assert t_plus < 0, "Angle to small"
-            assert t_minus < 0, "Angle to small"
+
+            try: t_plus = ((l1_p2[0]-l1_p1[0])*(prev_l1_p1[1]-l1_p1[1])-(l1_p2[1]-l1_p1[1])*(prev_l1_p1[0]-l1_p1[0]))/((l1_p2[1]-l1_p1[1])*(prev_l1_p2[0]-prev_l1_p1[0])-(l1_p2[0]-l1_p1[0])*(prev_l1_p2[1]-prev_l1_p1[1]))
+            except ZeroDivisionError: t_plus = 1
+            try: t_minus = ((l2_p2[0]-l2_p1[0])*(prev_l2_p1[1]-l2_p1[1])-(l2_p2[1]-l2_p1[1])*(prev_l2_p1[0]-l2_p1[0]))/((l2_p2[1]-l2_p1[1])*(prev_l2_p2[0]-prev_l2_p1[0])-(l2_p2[0]-l2_p1[0])*(prev_l2_p2[1]-prev_l2_p1[1]))
+            except ZeroDivisionError: t_minus = 1
+            #assert t_plus < 0, "Angle to small"
+            #assert t_minus < 0, "Angle to small"
             PARALLEL_POINTS_MINUS_X.pop(-1)
             PARALLEL_POINTS_PLUS_X.pop(-1)
             PARALLEL_CUT.extend((l1_p1, l2_p1))

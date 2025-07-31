@@ -60,16 +60,16 @@ def point_maker(bez_point, lp1, lp2, step_f, p_step_f):
             PARALLEL_POINTS_MINUS_X.pop(-1)
             PARALLEL_POINTS_PLUS_X.pop(-1)
             PARALLEL_CUT.extend((l1_p1, l2_p1))
-            PARALLEL_POINTS_MINUS_X.append(((prev_l2_p2[0]-prev_l2_p1[0])*t_minus + prev_l2_p1[0], (prev_l2_p2[1]-prev_l2_p1[1])*t_minus + prev_l2_p1[1]))
-            PARALLEL_POINTS_PLUS_X.append(((prev_l1_p2[0]-prev_l1_p1[0])*t_plus + prev_l1_p1[0], (prev_l1_p2[1]-prev_l1_p1[1])*t_plus + prev_l1_p1[1]))
-            PARALLEL_POINTS_MINUS_X.append(l2_p2)
-            PARALLEL_POINTS_PLUS_X.append(l1_p2)
+            PARALLEL_POINTS_MINUS_X.append((round((prev_l2_p2[0]-prev_l2_p1[0])*t_minus + prev_l2_p1[0], 2), round((prev_l2_p2[1]-prev_l2_p1[1])*t_minus + prev_l2_p1[1], 2)))
+            PARALLEL_POINTS_PLUS_X.append((round((prev_l1_p2[0]-prev_l1_p1[0])*t_plus + prev_l1_p1[0], 2), round((prev_l1_p2[1]-prev_l1_p1[1])*t_plus + prev_l1_p1[1], 2)))
+            PARALLEL_POINTS_MINUS_X.append((round(l2_p2[0], 2), round(l2_p2[1], 2)))
+            PARALLEL_POINTS_PLUS_X.append((round(l1_p2[0], 2), round(l1_p2[1], 2)))
         else:
             start = False
-            PARALLEL_POINTS_PLUS_X.extend((l1_p1, l1_p2))
-            PARALLEL_POINTS_MINUS_X.extend((l2_p1, l2_p2))
+            PARALLEL_POINTS_PLUS_X.extend(((round(l1_p1[0], 2), round(l1_p1[1], 2)), (round(l1_p2[0], 2), round(l1_p2[1], 2))))
+            PARALLEL_POINTS_MINUS_X.extend(((round(l2_p1[0], 2), round(l2_p1[1], 2)), (round(l2_p2[0], 2), round(l2_p2[1], 2))))
             PARALLEL_CUT.extend((l1_p1, l2_p1))
-        PIECEWISE_POINTS.append(lp1)
+        PIECEWISE_POINTS.append((round(lp1[0], 2), round(lp1[1], 2)))
 
 
 

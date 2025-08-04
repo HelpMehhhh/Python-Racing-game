@@ -76,7 +76,7 @@ class Game():
 
         result = self.convert(npgamev, screen_center, self.rotation_matrix, self.coord_conversion, ofssc)
         if ofssc:
-            return (result[0],pg.display.Info().current_h - result[1])
+            return (result[0], pg.display.Info().current_h - result[1])
         else: return result
 
 
@@ -289,7 +289,7 @@ class Car():
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, color_id=1):
         Car.__init__(self, screen, game, start_pos, color_id)
-        self.max_accel = 13/FRAME_RATE/1000 # 8 meters persecond persecond
+        self.max_accel = 13/FRAME_RATE/1000
         self.max_deccel = 25/FRAME_RATE/1000
 
 
@@ -346,7 +346,7 @@ class AiCar(Car):
 
 
             color = ['red', 'green', 'blue', 'yellow', 'orange']
-            pg.draw.line(self.screen, color[i], self.game.convert_passer(self.pos), self.game.convert_passer((x, y)), 2)
+            
 
 
     def check_collision(self):

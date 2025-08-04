@@ -117,18 +117,18 @@ class Game():
     def background(self):
         cent_line_screen = []
         pp_screen=[]
-        
+
         for point in self.cent_line:
             cent_line_screen.append(self.convert_passer(point))
         for point in self.para_lines:
             pp_screen.append(self.convert_passer(point))
-        
-        pg.gfxdraw.filled_polygon(self.screen, pp_screen, (105,105,105))
-        pg.draw.lines(self.screen, (255,255,255), True, cent_line_screen, 5)
-        
 
-    
-        
+        pg.gfxdraw.filled_polygon(self.screen, pp_screen, (105,105,105))
+        pg.draw.lines(self.screen, (255,255,255), False, cent_line_screen, 5)
+
+
+
+
 
 
 
@@ -248,7 +248,7 @@ class Car():
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
-        chg = 0.08*abs(self.turning_angle) + 0.01
+        chg = 0.11*abs(self.turning_angle) + 0.04
         if self.speed > 0.116: chg *= 0.116/self.speed
         time_elapsed = self.clock.tick()
         if self.keystate == self.KeyState.center:
@@ -258,7 +258,7 @@ class Car():
                 self.turning_angle = 0
         else:
             self.turning_angle += chg*self.keystate
-            maxTurn = 0.5
+            maxTurn = 1
             if self.speed > 0.116: maxTurn *= 0.116/self.speed
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
@@ -289,8 +289,8 @@ class Car():
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, color_id=1):
         Car.__init__(self, screen, game, start_pos, color_id)
-        self.max_accel = 8/FRAME_RATE/1000 # 8 meters persecond persecond
-        self.max_deccel = 20/FRAME_RATE/1000
+        self.max_accel = 13/FRAME_RATE/1000 # 8 meters persecond persecond
+        self.max_deccel = 25/FRAME_RATE/1000
 
 
     def redraw(self, rotation):

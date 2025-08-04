@@ -242,6 +242,8 @@ class Car():
         self.keystate = self.KeyState.center
         self.speedstate = self.SpeedState.const
         self.a = 0
+        self.tt = 0.005
+        self.tspeed = 0
 
     def redraw(self):
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
@@ -249,17 +251,18 @@ class Car():
 
     def movement_calc(self):
         chg = 0.11*abs(self.turning_angle) + 0.04
-        if self.speed > 0.116: chg *= 0.116/self.speed
+        #if self.speed > self.tt: chg *= self.tt/self.speed
         time_elapsed = self.clock.tick()
         if self.keystate == self.KeyState.center:
+            chg /= 2
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
             else:
                 self.turning_angle = 0
         else:
             self.turning_angle += chg*self.keystate
-            maxTurn = 1
-            if self.speed > 0.116: maxTurn *= 0.116/self.speed
+            maxTurn = 4
+            if self.speed > self.tt: maxTurn *= self.tt/self.speed
             if abs(self.turning_angle) > maxTurn:
                 self.turning_angle = self.keystate * maxTurn
 
@@ -273,8 +276,8 @@ class Car():
 
         self.car_angle += self.turning_angle*self.speed*time_elapsed
 
-        self.pos[0] += self.speed*np.cos(np.radians(self.car_angle+90))
-        self.pos[1] += self.speed*np.sin(np.radians(self.car_angle+90))
+        self.pos[0] += time_elapsed*self.speed*np.cos(np.radians(self.car_angle+90))
+        self.pos[1] += time_elapsed*self.speed*np.sin(np.radians(self.car_angle+90))
 
         if self.car_angle >= 360: self.car_angle -= 360
         if self.car_angle <= -360: self.car_angle += 360
@@ -289,8 +292,8 @@ class Car():
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, color_id=1):
         Car.__init__(self, screen, game, start_pos, color_id)
-        self.max_accel = 13/FRAME_RATE/1000
-        self.max_deccel = 25/FRAME_RATE/1000
+        self.max_accel = 16/1000000
+        self.max_deccel = 30/1000000
 
 
     def redraw(self, rotation):
@@ -346,7 +349,7 @@ class AiCar(Car):
 
 
             color = ['red', 'green', 'blue', 'yellow', 'orange']
-            
+
 
 
     def check_collision(self):

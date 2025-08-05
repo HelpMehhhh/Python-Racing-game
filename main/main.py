@@ -65,7 +65,8 @@ class Game():
         with open('parallel_points_01.pickle', 'rb') as f:
             self.para_lines = pickle.load(f)
         self.player = PlayerCar(self.screen, self, [0, 0.5])
-        self.cars = [self.player, AiCar(self.screen, self, [0, -10], 2, 5, 5), AiCar(self.screen, self, [3, 0], 2, 5, 5), AiCar(self.screen, self, [-3, 0], 3, 5, 5), AiCar(self.screen, self, [3, 6], 4, 5, 5), AiCar(self.screen, self, [-3, 6], 5, 5, 5), AiCar(self.screen, self, [0, 7], 6, 5, 5)]
+        self.cars = [self.player]
+        #, AiCar(self.screen, self, [0, -10], 2, 5, 5), AiCar(self.screen, self, [3, 0], 2, 5, 5), AiCar(self.screen, self, [-3, 0], 3, 5, 5), AiCar(self.screen, self, [3, 6], 4, 5, 5), AiCar(self.screen, self, [-3, 6], 5, 5, 5), AiCar(self.screen, self, [0, 7], 6, 5, 5)
         self.screen_center = self.player.pos
         self.rescale()
 
@@ -182,7 +183,8 @@ class Mainloop():
             t = self.clock.tick(FRAME_RATE)
             for event in pg.event.get():
 
-
+                if event.type == pg.KEYDOWN:
+                    pass
                 r = self.scene.events(event)
                 if r:
                     if r[0] == 1: self.change_scene(r[1])
@@ -195,6 +197,8 @@ class Mainloop():
                         else:
                             self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
                             self.fullscreen = True
+                    if event.key == pg.K_9:
+                        pass
                 elif event.type == pg.QUIT:
                     self.running = False
                 elif event.type == pg.WINDOWRESIZED:
@@ -213,7 +217,7 @@ class Hud():
 
 
 class Car():
-    class KeyState(IntEnum):
+    class SteerState(IntEnum):
         left = 1
         center = 0
         right = -1
@@ -239,7 +243,7 @@ class Car():
         self.time_1_frame = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
         self.clock = pg.time.Clock()
         self.turn_timer = 0
-        self.keystate = self.KeyState.center
+        self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
         self.a = 0
         self.tt = 0.005
@@ -250,22 +254,19 @@ class Car():
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
-        chg = 0.11*abs(self.turning_angle) + 0.04
+        chg = 0.04*abs(self.turning_angle) + 0.1
         #if self.speed > self.tt: chg *= self.tt/self.speed
         time_elapsed = self.clock.tick()
-        if self.keystate == self.KeyState.center:
+        if self.steerstate == self.SteerState.center:
             chg /= 2
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
             else:
                 self.turning_angle = 0
         else:
-            self.turning_angle += chg*self.keystate
-            maxTurn = 4
-            if self.speed > self.tt: maxTurn *= self.tt/self.speed
-            if abs(self.turning_angle) > maxTurn:
-                self.turning_angle = self.keystate * maxTurn
-
+            if self.turning_angle <= 70 and self.turning_angle >= -70:
+                self.turning_angle += chg*self.steerstate
+            else: self.turning_angle = 70*np.sign(self.turning_angle)
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
                 self.speed -= time_elapsed*self.max_deccel
@@ -273,8 +274,18 @@ class Car():
             elif self.speedstate == self.SpeedState.accel:
                 self.speed += time_elapsed*self.max_accel
 
+        if self.turning_angle != 0:
+            radius = np.sqrt((((2/np.tan(self.turning_angle))+1)**2)+1)
+        else: radius = 0
+        max_speed = np.sqrt(radius*15.696)/1000
+        if self.speed > max_speed:
+            radius = ((self.speed*1000)**2)/15.696
 
-        self.car_angle += self.turning_angle*self.speed*time_elapsed
+        print(radius)
+        d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
+
+        self.car_angle += np.degrees(d_angle)
+
 
         self.pos[0] += time_elapsed*self.speed*np.cos(np.radians(self.car_angle+90))
         self.pos[1] += time_elapsed*self.speed*np.sin(np.radians(self.car_angle+90))
@@ -303,14 +314,14 @@ class PlayerCar(Car):
     def control(self, event):
         if (event.type == pg.KEYUP):
             if (event.key in (pg.K_d, pg.K_a)):
-                self.keystate = self.KeyState.center
+                self.steerstate = self.SteerState.center
             if (event.key in (pg.K_UP, pg.K_DOWN)):
                 self.speedstate = self.SpeedState.const
         elif (event.type == pg.KEYDOWN):
             if (event.key == pg.K_d):
-                self.keystate = self.KeyState.right
+                self.steerstate = self.SteerState.right
             elif (event.key == pg.K_a):
-                self.keystate = self.KeyState.left
+                self.steerstate = self.SteerState.left
             if (event.key == pg.K_UP):
                 self.speedstate = self.SpeedState.accel
             elif (event.key == pg.K_DOWN):

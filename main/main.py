@@ -254,11 +254,11 @@ class Car():
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
-        chg = 0.1*abs(self.turning_angle) + 0.1
+        chg = 0.05*abs(self.turning_angle) + 0.1
         #if self.speed > self.tt: chg *= self.tt/self.speed
         time_elapsed = self.clock.tick()
         if self.steerstate == self.SteerState.center:
-            chg /= 2
+            
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
             else:
@@ -273,21 +273,20 @@ class Car():
                 if self.speed < 0: self.speed = 0
             elif self.speedstate == self.SpeedState.accel:
                 self.speed += time_elapsed*self.max_accel
-        
+        print(self.turning_angle)
         if self.turning_angle != 0:
             radius = np.sqrt((((2/np.tan(self.turning_angle))+1)**2)+1)
+            #print(radius)
 
         else: radius = 0
-        max_speed = np.sqrt(radius*15.696)/1000
-        print(self.speed/3600000000)
+        max_speed = np.sqrt(radius*19.62)/1000
         if self.speed > max_speed:
-            radius = ((self.speed*1000)**2)/15.696
+            radius = ((self.speed*1000)**2)/19.62
             
         
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
-
         self.car_angle += float(np.degrees(d_angle))
-
+        
 
         self.pos[0] += time_elapsed*self.speed*np.cos(np.radians(self.car_angle+90))
         self.pos[1] += time_elapsed*self.speed*np.sin(np.radians(self.car_angle+90))

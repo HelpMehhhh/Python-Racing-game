@@ -60,9 +60,9 @@ class Game():
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
-        with open('center_points_1.pickle', 'rb') as f:
+        with open('main/center_points_1.pickle', 'rb') as f:
             self.cent_line = pickle.load(f)
-        with open('parallel_points_01.pickle', 'rb') as f:
+        with open('main/parallel_points_01.pickle', 'rb') as f:
             self.para_lines = pickle.load(f)
         self.player = PlayerCar(self.screen, self, [0, 0.5])
         self.cars = [self.player]
@@ -258,13 +258,13 @@ class Car():
         #if self.speed > self.tt: chg *= self.tt/self.speed
         time_elapsed = self.clock.tick()
         if self.steerstate == self.SteerState.center:
-            
+
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
             else:
                 self.turning_angle = 0
         else:
-            
+
             self.turning_angle += chg*self.steerstate
             if self.turning_angle > 70 or self.turning_angle < -70: self.turning_angle = float(70*np.sign(self.turning_angle))
         if self.speedstate != self.SpeedState.const:
@@ -282,11 +282,11 @@ class Car():
         max_speed = np.sqrt(radius*19.62)/1000
         if self.speed > max_speed:
             radius = ((self.speed*1000)**2)/19.62
-            
-        
+
+
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
         self.car_angle += float(np.degrees(d_angle))
-        
+
 
         self.pos[0] += time_elapsed*self.speed*np.cos(np.radians(self.car_angle+90))
         self.pos[1] += time_elapsed*self.speed*np.sin(np.radians(self.car_angle+90))

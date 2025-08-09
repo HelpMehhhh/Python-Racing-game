@@ -40,9 +40,10 @@ class Car():
 
 
     def movement_calc(self, time_elapsed):
-        chg = (0.0072*abs(self.turning_angle) + 0.04)*time_elapsed
+        chg = (0.00012566*abs(self.turning_angle) + 0.000698131)*time_elapsed
         #if self.speed > self.tt: chg *= self.tt/self.speed
         if self.steerstate == self.SteerState.center:
+            chg *=2
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
 
@@ -51,7 +52,7 @@ class Car():
 
         else:
             self.turning_angle += chg*self.steerstate
-            if self.turning_angle > 30 or self.turning_angle < -30: self.turning_angle = float(30*np.sign(self.turning_angle))
+            if self.turning_angle > 0.5236 or self.turning_angle < -0.5236: self.turning_angle = float(0.5236*np.sign(self.turning_angle))
 
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
@@ -62,7 +63,7 @@ class Car():
                 self.speed += time_elapsed*self.max_accel
 
         if self.turning_angle != 0:
-            radius = np.sqrt((((2/np.tan(np.radians(abs(self.turning_angle))))+1)**2)+1)
+            radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
             #print(radius)
 
         else: radius = 0
@@ -72,11 +73,11 @@ class Car():
             radius = ((self.speed*1000)**2)/50
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
-        self.car_angle += float(np.degrees(d_angle))
-        self.pos[0] += time_elapsed*self.speed*np.cos(np.radians(self.car_angle+90))
-        self.pos[1] += time_elapsed*self.speed*np.sin(np.radians(self.car_angle+90))
-        if self.car_angle >= 360: self.car_angle -= 360
-        if self.car_angle <= -360: self.car_angle += 360
+        self.car_angle += float(d_angle)
+        self.pos[0] += time_elapsed*self.speed*np.cos(self.car_angle+1.570796327)
+        self.pos[1] += time_elapsed*self.speed*np.sin(self.car_angle+1.570796327)
+        if self.car_angle >= 6.283185307: self.car_angle -= 6.283185307
+        if self.car_angle <= -6.283185307: self.car_angle += 6.283185307
 
 
     def transform(self):

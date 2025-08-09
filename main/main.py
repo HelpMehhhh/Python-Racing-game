@@ -18,7 +18,7 @@ class Settings():
     def __init__(self, screen):
         pass
 
-    def redraw(self):
+    def tick(self, t):
         pass
 
 
@@ -31,7 +31,7 @@ class MainMenu():
         self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
-    def redraw(self):
+    def tick(self, t):
         self.screen.blit(self.menu_bg, (0,0))
         self.play.update()
         self.quit.update()
@@ -97,12 +97,12 @@ class Game():
             return result
 
 
-    def redraw(self):
-        for car in self.cars: car.movement_calc()
+    def tick(self, time_elapsed):
+        for car in self.cars: car.movement_calc(time_elapsed)
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        for car in self.cars: car.redraw(self.rotation)
+        for car in self.cars: car.tick(self.rotation)
         self.rotation = -self.player.car_angle
 
 
@@ -175,12 +175,12 @@ class Mainloop():
     def main_loop(self):
         self.scene.rescale()
         while self.running:
-
-            self.scene.redraw()
+            t = self.clock.tick(FRAME_RATE)
+            self.scene.tick(t)
 
 
             pg.display.flip()
-            t = self.clock.tick(FRAME_RATE)
+
             for event in pg.event.get():
 
                 if event.type == pg.KEYDOWN:
@@ -241,7 +241,6 @@ class Car():
         self.radius = 0
         self.game = game
         self.time_1_frame = round(1/FRAME_RATE, 4) #distance traveled in 1 tick
-        self.clock = pg.time.Clock()
         self.turn_timer = 0
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
@@ -249,14 +248,13 @@ class Car():
         self.tt = 0.005
         self.tspeed = 0
 
-    def redraw(self):
+    def tick(self):
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
 
-    def movement_calc(self):
-        chg = 0.12*abs(self.turning_angle) + 0.3
+    def movement_calc(self, time_elapsed):
+        chg = (7.2*abs(self.turning_angle) + 30)*time_elapsed
         #if self.speed > self.tt: chg *= self.tt/self.speed
-        time_elapsed = self.clock.tick()
         if self.steerstate == self.SteerState.center:
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
@@ -277,10 +275,10 @@ class Car():
             #print(radius)
 
         else: radius = 0
-        max_speed = np.sqrt(radius*29.43)/1000
-        print(self.speed*1000)
+        max_speed = np.sqrt(radius*50)/1000
+        #print(self.speed*3600)
         if self.speed > max_speed:
-            radius = ((self.speed*1000)**2)/29.43
+            radius = ((self.speed*1000)**2)/50
 
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
@@ -304,12 +302,12 @@ class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, color_id=1):
         Car.__init__(self, screen, game, start_pos, color_id)
         self.max_accel = 15/1000000
-        self.max_deccel = 50/1000000
+        self.max_deccel = 22/1000000
 
 
-    def redraw(self, rotation):
+    def tick(self, rotation):
         self.transform()
-        super().redraw()
+        super().tick()
 
     def control(self, event):
         if (event.type == pg.KEYUP):
@@ -338,9 +336,9 @@ class AiCar(Car):
         self.max_deccel = max_deccel/FRAME_RATE/1000
 
 
-    def redraw(self, rotation):
+    def tick(self, rotation):
         self.transform(rotation)
-        super().redraw()
+        super().tick()
         self.tick_radar()
 
     def transform(self, rotation):

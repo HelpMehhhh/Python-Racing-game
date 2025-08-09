@@ -254,11 +254,10 @@ class Car():
         self.screen.blit(self.car, self.car_rect)
 
     def movement_calc(self):
-        chg = 0.05*abs(self.turning_angle) + 0.1
+        chg = 0.12*abs(self.turning_angle) + 0.3
         #if self.speed > self.tt: chg *= self.tt/self.speed
         time_elapsed = self.clock.tick()
         if self.steerstate == self.SteerState.center:
-
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
             else:
@@ -266,22 +265,22 @@ class Car():
         else:
 
             self.turning_angle += chg*self.steerstate
-            if self.turning_angle > 70 or self.turning_angle < -70: self.turning_angle = float(70*np.sign(self.turning_angle))
+            if self.turning_angle > 30 or self.turning_angle < -30: self.turning_angle = float(30*np.sign(self.turning_angle))
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
                 self.speed -= time_elapsed*self.max_deccel
                 if self.speed < 0: self.speed = 0
             elif self.speedstate == self.SpeedState.accel:
                 self.speed += time_elapsed*self.max_accel
-        print(self.turning_angle)
         if self.turning_angle != 0:
-            radius = np.sqrt((((2/np.tan(self.turning_angle))+1)**2)+1)
+            radius = np.sqrt((((2/np.tan(np.radians(abs(self.turning_angle))))+1)**2)+1)
             #print(radius)
 
         else: radius = 0
-        max_speed = np.sqrt(radius*19.62)/1000
+        max_speed = np.sqrt(radius*29.43)/1000
+        print(self.speed*1000)
         if self.speed > max_speed:
-            radius = ((self.speed*1000)**2)/19.62
+            radius = ((self.speed*1000)**2)/29.43
 
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
@@ -304,8 +303,8 @@ class Car():
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, color_id=1):
         Car.__init__(self, screen, game, start_pos, color_id)
-        self.max_accel = 16/1000000
-        self.max_deccel = 30/1000000
+        self.max_accel = 15/1000000
+        self.max_deccel = 50/1000000
 
 
     def redraw(self, rotation):

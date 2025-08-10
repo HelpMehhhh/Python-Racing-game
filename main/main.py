@@ -144,11 +144,11 @@ class Game():
 
 
     def tick(self, time_elapsed):
-        for car in self.cars: car.movement_calc(time_elapsed)
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        for car in self.cars: car.tick(self.rotation)
+        for car in self.cars: car.tick(time_elapsed, self.rotation)
+        self.screen_center = self.player.pos
         self.rotation = -self.player.car_angle
 
 

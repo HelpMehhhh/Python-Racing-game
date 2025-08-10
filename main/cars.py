@@ -34,16 +34,19 @@ class Car():
         self.tspeed = 0
 
 
-    def tick(self):
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
-        self.screen.blit(self.car, self.car_rect)
+    def tick(self, time_elapsed, rotation):
+        self.rotation = rotation
+        self.time_elapsed = time_elapsed
+        self.draw()
+        self.movement_calc()
 
 
-    def movement_calc(self, time_elapsed):
-        chg = (0.00012566*abs(self.turning_angle) + 0.000698131)*time_elapsed
+
+    def movement_calc(self):
+        chg = (0.00012566*abs(self.turning_angle) + 0.000698131)*self.time_elapsed
         #if self.speed > self.tt: chg *= self.tt/self.speed
         if self.steerstate == self.SteerState.center:
-            chg *=2
+            chg *=3
             if abs(self.turning_angle) > chg:
                 self.turning_angle += chg if (self.turning_angle < 0) else -chg
 
@@ -51,16 +54,17 @@ class Car():
                 self.turning_angle = 0
 
         else:
+            if np.sign(self.turning_angle) != np.sign(self.steerstate): chg *= 3
             self.turning_angle += chg*self.steerstate
             if self.turning_angle > 0.5236 or self.turning_angle < -0.5236: self.turning_angle = float(0.5236*np.sign(self.turning_angle))
 
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
-                self.speed -= time_elapsed*self.max_deccel
+                self.speed -= self.time_elapsed*self.max_deccel
                 if self.speed < 0: self.speed = 0
 
             elif self.speedstate == self.SpeedState.accel:
-                self.speed += time_elapsed*self.max_accel
+                self.speed += self.time_elapsed*self.max_accel
 
         if self.turning_angle != 0:
             radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
@@ -72,17 +76,20 @@ class Car():
         if self.speed > max_speed:
             radius = ((self.speed*1000)**2)/50
 
-        d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed) if radius != 0 else 0
+        d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
         self.car_angle += float(d_angle)
-        self.pos[0] += time_elapsed*self.speed*np.cos(self.car_angle+1.570796327)
-        self.pos[1] += time_elapsed*self.speed*np.sin(self.car_angle+1.570796327)
+        self.pos[0] += self.time_elapsed*self.speed*np.cos(self.car_angle+1.570796327)
+        self.pos[1] += self.time_elapsed*self.speed*np.sin(self.car_angle+1.570796327)
         if self.car_angle >= 6.283185307: self.car_angle -= 6.283185307
         if self.car_angle <= -6.283185307: self.car_angle += 6.283185307
 
 
-    def transform(self):
+    def draw(self):
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
         self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
+        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
+
+
 
 
 
@@ -92,11 +99,6 @@ class PlayerCar(Car):
         Car.__init__(self, screen, game, start_pos, color_id)
         self.max_accel = 15/1000000
         self.max_deccel = 22/1000000
-
-
-    def tick(self, rotation):
-        self.transform()
-        super().tick()
 
 
     def control(self, event):
@@ -115,6 +117,12 @@ class PlayerCar(Car):
             elif (event.key == pg.K_DOWN): self.speedstate = self.SpeedState.deccel
 
 
+    def draw(self):
+        super().draw()
+        self.screen.blit(self.car, self.car_rect)
+
+
+
 
 
 
@@ -125,14 +133,10 @@ class AiCar(Car):
         self.max_deccel = max_deccel/1000000
 
 
-    def tick(self, rotation):
-        self.transform(rotation)
-        super().tick()
-        self.tick_radar()
-
-    def transform(self, rotation):
-        super().transform()
-        self.car = pg.transform.rotate(self.car, rotation - self.car_angle)
+    def draw(self):
+        super().draw()
+        self.car = pg.transform.rotate(self.car, self.rotation - self.car_angle)
+        self.screen.blit(self.car, self.car_rect)
 
 
 

@@ -2,3 +2,4 @@ pygame
 numpy
 sympy
 numba
+neat-python

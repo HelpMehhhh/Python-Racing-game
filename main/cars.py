@@ -15,7 +15,7 @@ class Car():
 
 
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, game, start_pos, color_id=1):
+    def __init__(self, screen, game, start_pos, color_id, simulation):
         self.screen = screen
         self.pos = start_pos
         self.color_id = color_id
@@ -32,14 +32,12 @@ class Car():
         self.a = 0
         self.tt = 0.005
         self.tspeed = 0
+        self.simulation = simulation
 
 
-    def tick(self, time_elapsed, rotation):
-        self.rotation = rotation
+    def tick(self, time_elapsed):
         self.time_elapsed = time_elapsed
-        self.draw()
-        self.movement_calc()
-
+        if not self.simulation: self.draw()
 
 
     def movement_calc(self):
@@ -95,8 +93,8 @@ class Car():
 
 
 class PlayerCar(Car):
-    def __init__(self, screen, game, start_pos, color_id=1):
-        Car.__init__(self, screen, game, start_pos, color_id)
+    def __init__(self, screen, game, start_pos, color_id=1, simulation=0):
+        Car.__init__(self, screen, game, start_pos, color_id, simulation)
         self.max_accel = 15/1000000
         self.max_deccel = 22/1000000
 
@@ -117,6 +115,11 @@ class PlayerCar(Car):
             elif (event.key == pg.K_DOWN): self.speedstate = self.SpeedState.deccel
 
 
+    def tick(self, time_elapsed):
+        super().tick(time_elapsed)
+        self.movement_calc()
+
+
     def draw(self):
         super().draw()
         self.screen.blit(self.car, self.car_rect)
@@ -127,10 +130,28 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
-    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel):
-        Car.__init__(self, screen, game, start_pos, color_id)
+    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, n_net, cl_points, simulation=1):
+        Car.__init__(self, screen, game, start_pos, color_id, simulation)
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
+        self.n_net = n_net
+        self.cl_points = cl_points
+
+
+    def tick(self, time_elapsed, rotation):
+        self.rotation = rotation
+        super().tick(time_elapsed)
+        self.brain_calc()
+        self.movement_calc()
+
+
+    def get_data(self):
+
+        return data
+
+
+    def brain_calc(self):
+        output = self.n_net.activate(self.get_data())
 
 
     def draw(self):

@@ -108,13 +108,13 @@ class Game():
         self.screen.fill((0,0,0))
         self.rotation = 0
         self.zoom = 0.4
-        with open('main/center_points_1.pickle', 'rb') as f: self.cent_line = pickle.load(f)
+        local_dir = os.path.dirname(__file__)
+        with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
 
-        with open('main/parallel_points_01.pickle', 'rb') as f: self.para_lines = pickle.load(f)
+        with open(os.path.join(local_dir, 'parallel_points_01.pickle'), 'rb') as f: self.para_lines = pickle.load(f)
 
         self.player = PlayerCar(self.screen, self, [0, 0.5])
         self.cars = [self.player]
-        #, AiCar(self.screen, self, [0, -10], 2, 5, 5), AiCar(self.screen, self, [3, 0], 2, 5, 5), AiCar(self.screen, self, [-3, 0], 3, 5, 5), AiCar(self.screen, self, [3, 6], 4, 5, 5), AiCar(self.screen, self, [-3, 6], 5, 5, 5), AiCar(self.screen, self, [0, 7], 6, 5, 5)
         self.screen_center = self.player.pos
         self.rescale()
 
@@ -147,7 +147,7 @@ class Game():
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        for car in self.cars: car.tick(time_elapsed, self.rotation)
+        for car in self.cars: car.tick(time_elapsed)
         self.screen_center = self.player.pos
         self.rotation = -self.player.car_angle
 
@@ -171,7 +171,7 @@ class Game():
             pp_screen.append(self.convert_passer(point))
 
         pg.gfxdraw.filled_polygon(self.screen, pp_screen, (105,105,105))
-        pg.draw.lines(self.screen, (255,255,255), False, cent_line_screen, 5)
+        pg.draw.lines(self.screen, (255,255,255), True, cent_line_screen, 5)
 
 
     def rescale(self):

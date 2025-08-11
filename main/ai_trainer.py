@@ -19,11 +19,11 @@ def eval_genomes(genomes, config):
     while True:
         remain_cars = 0
         for i, car in enumerate(cars):
-            if car.get_alive: 
+            if car.get_alive():
                 car.tick(17, 0)
                 remain_cars += 1
 
-            else: 
+            else:
                 genomes[i][1].fitness += car.get_reward()
                 car.used_reward()
 
@@ -48,7 +48,7 @@ def run(config_path, generations):
     final_genomes = pop.population
     for genome_id, genome in final_genomes.items(): print(f"Genome ID: {genome_id}, Fitness: {genome.fitness}")
 
-if __name__ is '__main__':
+if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
     run(config_path, 100)

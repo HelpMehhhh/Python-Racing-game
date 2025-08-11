@@ -139,6 +139,10 @@ class AiCar(Car):
         self.state = 1 #1 for alive, 0 for dead
         self.distance = 0
         self.time = 0
+        self.reward = True
+        self.target_cl_index = 1
+        self.p_prev = start_pos
+        self.p_next = start_pos
 
 
     def tick(self, time_elapsed, rotation):
@@ -149,20 +153,17 @@ class AiCar(Car):
 
 
     def used_reward(self):
-        self.distance = 0
+        self.reward = False
 
 
     def get_reward(self):
-        return (self.distance**2)/self.time
+        if self.reward:
+            return (self.distance**2)/self.time
+        else: return 0
 
 
     def get_alive(self):
         return self.state
-
-
-    def get_data(self):
-        data = [0, 0, 0, 0, 0, 0, 0, 0]
-        return data
 
 
     def get_distance_intersect(self, other_seg_point, closest_cl_point):
@@ -175,13 +176,12 @@ class AiCar(Car):
         y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*closest_cl_point[0]-(m**2)*closest_cl_point[1])/((m**2)+1)-m*closest_cl_point[1]+closest_cl_point[1]
         lower_bound = min(other_seg_point[0], closest_cl_point[0])
         upper_bound = max(other_seg_point[0], closest_cl_point[0])
-
-        if not lower_bound <= x <= upper_bound: return None
         d = np.linalg.norm(np.array(self.pos) - np.array([x, y]))
-        return d
+        if not lower_bound <= x <= upper_bound: return [False, d, (x, y)]
+        return [True, d, (x, y)]
 
 
-    def get_current_seg(self):
+    def get_current_dist(self):
         c_d = -1
         index = 0
         for i, point in enumerate(self.cl_points):
@@ -189,29 +189,40 @@ class AiCar(Car):
             if c_d >= d:
                 c_d = d
                 index = i
+
         closest_cl_point = self.cl_points[index]
         c_cl_index = index
         if index == (len(self.cl_points)-1): index = -1
         next_cl_point = self.cl_points[index+1]
         prev_cl_point = self.cl_points[index-1]
-
         d_next = self.get_distance_intersect(next_cl_point, closest_cl_point)
         d_prev = self.get_distance_intersect(prev_cl_point, closest_cl_point)
-
-        if (d_next == None and d_prev == None) or (d_next != None and d_prev != None):
+        if (d_next[0] and d_prev[0]) or (not d_next[0] and not d_prev[0]):
             self.target_cl_index = index+1
             d = np.linalg.norm(np.array(self.pos) - np.array(closest_cl_point))
+            dist_trav_prev = np.linalg.norm(np.array(self.p_prev) - np.array(d_prev[2]))
+            dist_trav_next = np.linalg.norm(np.array(self.p_next) - np.array(d_next[2]))
+            self.p_prev = d_prev[2]
+            self.p_next = d_next[2]
+            self.distance += (dist_trav_next + dist_trav_prev)
 
-        elif d_next == None and d_prev != None:
+        elif not d_next[0] and d_prev[0]:
             self.target_cl_index = c_cl_index
-            d = d_prev
+            d = d_prev[1]
+            dist_trav_prev = np.linalg.norm(np.array(self.p_prev) - np.array(d_prev[2]))
+            self.p_prev = d_prev[2]
+            self.p_next = d_next[2]
+            self.distance += dist_trav_prev
 
-        elif d_next != None and d_prev == None:
+        elif d_next[0] and not d_prev[0]:
             self.target_cl_index = index+1
-            d = d_next
+            d = d_next[1]
+            dist_trav_next = np.linalg.norm(np.array(self.p_next) - np.array(d_next[2]))
+            self.p_prev = d_prev[2]
+            self.p_next = d_next[2]
+            self.distance += dist_trav_next
+
         return d
-
-
 
 
     def get_data(self):
@@ -220,30 +231,43 @@ class AiCar(Car):
         if abs(self.car_angle) > np.pi:
             angle = self.car_angle + np.sign(self.car_angle)*-(2*np.pi)
 
-        p_angle = np.arctan2(point[0], point[1])
-        data[0] = p_angle + angle
+        else: angle = self.car_angle
 
-        if self.target_cl_index == (len(self.cl_points)-1): index = -1
-        else: index = self.target_cl_index
-        point = [self.cl_points[index+1][0] + -1*self.cl_points[self.target_cl_index][0], self.cl_points[index+1][1] + -1*self.cl_points[self.target_cl_index][1]]
-        n_angle = np.arctan2(point[0], point[1])
-        data[2] =  -1*p_angle + n_angle
+        prev_angle = np.arctan2(point[0], point[1])
+        data[0] = prev_angle + angle
+        d = np.linalg.norm(np.array(self.pos) - np.array(self.cl_points[self.target_cl_index]))
+        data[1] = d
+        index = self.target_cl_index
+        for i in range(2, 9, 2):
+            if index == (len(self.cl_points)-1): index = -1
+            point = [self.cl_points[index+1][0] + -1*self.cl_points[index][0], self.cl_points[index+1][1] + -1*self.cl_points[index][1]]
+            point_angle = np.arctan2(point[0], point[1])
+            data[i] =  -1*prev_angle + point_angle
+            index = index+1
+            prev_angle=point_angle
+            d = np.linalg.norm(np.array(self.cl_points[self.target_cl_index+((i // 2)-1)]) - np.array(self.cl_points[self.target_cl_index+((i // 2))]))
+            data[i+1] = d
 
-        if index+1 == (len(self.cl_points)-1): index = -1
-        else: index = index+1
-        point = [self.cl_points[index+2][0] + -1*self.cl_points[index][0], self.cl_points[index+2][1] + -1*self.cl_points[index][1]]
-        nn_angle = np.arctan2(point[0], point[1])
-        data[4] =  -1*n_angle + nn_angle
-
-
-
+        return data
 
 
     def brain_calc(self):
-        d = self.get_current_dist(self)
+        d = self.get_current_dist()
         if d >= 7: self.state = 0
         output = self.n_net.activate(self.get_data())
+        if output[0] <= -1/3:
+            self.steerstate = self.SteerState.left
+        elif output[0] >= 1/3:
+            self.steerstate = self.SteerState.right
+        else:
+            self.steerstate = self.SteerState.center
 
+        if output[1] <= -1/3:
+            self.speedstate = self.SpeedState.deccel
+        elif output[1] >= 1/3:
+            self.speedstate = self.SpeedState.accel
+        else:
+            self.speedstate = self.SpeedState.const
         self.time += self.time_elapsed
 
 

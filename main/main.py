@@ -191,22 +191,6 @@ class Game():
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
     #cProfile.run("Mainloop()", sort="cumtime")
     Mainloop()

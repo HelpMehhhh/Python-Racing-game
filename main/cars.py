@@ -176,6 +176,7 @@ class AiCar(Car):
     def get_distance_intersect(self, other_seg_point, closest_cl_point):
         if abs(other_seg_point[1]-closest_cl_point[1]) > abs(other_seg_point[0]-closest_cl_point[0]):
             m = ((other_seg_point[0]-closest_cl_point[0])/(other_seg_point[1]-closest_cl_point[1]))
+
         else:
             m = ((other_seg_point[1]-closest_cl_point[1])/(other_seg_point[0]-closest_cl_point[0]))
 

@@ -76,8 +76,8 @@ class Car():
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
         self.car_angle += float(d_angle)
-        self.pos[0] += self.time_elapsed*self.speed*np.cos(self.car_angle+1.570796327)
-        self.pos[1] += self.time_elapsed*self.speed*np.sin(self.car_angle+1.570796327)
+        self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle+1.570796327))
+        self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle+1.570796327))
         if self.car_angle >= 6.283185307: self.car_angle -= 6.283185307
         if self.car_angle <= -6.283185307: self.car_angle += 6.283185307
 
@@ -145,6 +145,7 @@ class AiCar(Car):
         self.p_next = start_pos
         self.time_at_0_speed = 0
         self.death_reason = 0
+        self.dd = 0
 
 
     def tick(self, time_elapsed, rotation):
@@ -161,6 +162,8 @@ class AiCar(Car):
 
     def get_reward(self):
         if self.reward:
+            if self.death_reason == "Got too far":
+                pass
             reward = float((self.distance**2)/self.time)
             return reward
         else: return 0
@@ -186,11 +189,11 @@ class AiCar(Car):
 
 
     def get_current_dist(self):
-        c_d = -1
+        c_d = float('inf')
         index = 0
         for i, point in enumerate(self.cl_points):
             d = np.linalg.norm(np.array(self.pos) - np.array(point))
-            if c_d >= d:
+            if d < c_d:
                 c_d = d
                 index = i
 
@@ -257,10 +260,13 @@ class AiCar(Car):
 
 
     def brain_calc(self):
-        d = self.get_current_dist()
-        if d >= 7:
+        if self.dd >= 7:
             self.death_reason = "Got too far"
+
             self.state = 0
+        d = self.get_current_dist()
+        self.dd = d
+
         output = self.n_net.activate(self.get_data())
         if output[0] <= -1/3:
             self.steerstate = self.SteerState.left
@@ -286,7 +292,7 @@ class AiCar(Car):
             self.state = 0
             self.death_reason = "Sat still for too long"
         self.time += self.time_elapsed/1000
-        print(self.speed*3600, self.distance)
+        #print(self.speed*3600, self.distance)
 
 
     def draw(self):

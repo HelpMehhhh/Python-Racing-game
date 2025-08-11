@@ -70,7 +70,7 @@ class Car():
 
         else: radius = 0
         max_speed = np.sqrt(radius*50)/1000
-        #print(self.speed*3600)
+        #
         if self.speed > max_speed:
             radius = ((self.speed*1000)**2)/50
 
@@ -143,13 +143,16 @@ class AiCar(Car):
         self.target_cl_index = 1
         self.p_prev = start_pos
         self.p_next = start_pos
+        self.time_at_0_speed = 0
+        self.death_reason = 0
 
 
     def tick(self, time_elapsed, rotation):
         self.rotation = rotation
         super().tick(time_elapsed)
-        self.brain_calc()
         self.movement_calc()
+        self.brain_calc()
+
 
 
     def used_reward(self):
@@ -158,7 +161,8 @@ class AiCar(Car):
 
     def get_reward(self):
         if self.reward:
-            return (self.distance**2)/self.time
+            reward = float((self.distance**2)/self.time)
+            return reward
         else: return 0
 
 
@@ -225,6 +229,7 @@ class AiCar(Car):
         return d
 
 
+
     def get_data(self):
         data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         point = [self.cl_points[self.target_cl_index][0] + -1*self.pos[0], self.cl_points[self.target_cl_index][1] + -1*self.pos[1]]
@@ -234,26 +239,28 @@ class AiCar(Car):
         else: angle = self.car_angle
 
         prev_angle = np.arctan2(point[0], point[1])
-        data[0] = prev_angle + angle
+        data[0] = float(prev_angle + angle)
         d = np.linalg.norm(np.array(self.pos) - np.array(self.cl_points[self.target_cl_index]))
-        data[1] = d
+        data[1] = float(d)
         index = self.target_cl_index
         for i in range(2, 9, 2):
             if index == (len(self.cl_points)-1): index = -1
             point = [self.cl_points[index+1][0] + -1*self.cl_points[index][0], self.cl_points[index+1][1] + -1*self.cl_points[index][1]]
             point_angle = np.arctan2(point[0], point[1])
-            data[i] =  -1*prev_angle + point_angle
+            data[i] =  float(-1*prev_angle + point_angle)
             index = index+1
             prev_angle=point_angle
             d = np.linalg.norm(np.array(self.cl_points[self.target_cl_index+((i // 2)-1)]) - np.array(self.cl_points[self.target_cl_index+((i // 2))]))
-            data[i+1] = d
+            data[i+1] = float(d)
 
         return data
 
 
     def brain_calc(self):
         d = self.get_current_dist()
-        if d >= 7: self.state = 0
+        if d >= 7:
+            self.death_reason = "Got too far"
+            self.state = 0
         output = self.n_net.activate(self.get_data())
         if output[0] <= -1/3:
             self.steerstate = self.SteerState.left
@@ -268,7 +275,18 @@ class AiCar(Car):
             self.speedstate = self.SpeedState.accel
         else:
             self.speedstate = self.SpeedState.const
-        self.time += self.time_elapsed
+
+        if self.time == (self.time_elapsed/1000)*100:
+            if self.speed == 0: self.state = 0
+            print("fired")
+        if self.speed == 0:
+            self.time_at_0_speed += 0.001
+        else: self.time_at_0_speed = 0
+        if self.time_at_0_speed >= 0.012:
+            self.state = 0
+            self.death_reason = "Sat still for too long"
+        self.time += self.time_elapsed/1000
+        print(self.speed*3600, self.distance)
 
 
     def draw(self):

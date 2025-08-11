@@ -136,6 +136,9 @@ class AiCar(Car):
         self.max_deccel = max_deccel/1000000
         self.n_net = n_net
         self.cl_points = cl_points
+        self.state = 1 #1 for alive, 0 for dead
+        self.distance = 0
+        self.time = 0
 
 
     def tick(self, time_elapsed, rotation):
@@ -145,6 +148,18 @@ class AiCar(Car):
         self.movement_calc()
 
 
+    def used_reward(self):
+        self.distance = 0
+
+
+    def get_reward(self):
+        return (self.distance**2)/self.time
+
+
+    def get_alive(self):
+        return self.state
+
+
     def get_data(self):
 
         return data
@@ -152,6 +167,8 @@ class AiCar(Car):
 
     def brain_calc(self):
         output = self.n_net.activate(self.get_data())
+        
+        self.time += self.time_elapsed
 
 
     def draw(self):

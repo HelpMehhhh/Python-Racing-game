@@ -2,6 +2,7 @@ from enum import IntEnum
 import pygame as pg
 import numpy as np
 import os
+from neat import nn
 
 class Car():
     class SteerState(IntEnum):
@@ -130,11 +131,10 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
-    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, n_net, cl_points, simulation=1):
+    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, genome_id, config, cl_points, simulation=1):
         Car.__init__(self, screen, game, start_pos, color_id, simulation)
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
-        self.n_net = n_net
         self.cl_points = cl_points
         self.state = 1 #1 for alive, 0 for dead
         self.distance = 0
@@ -144,8 +144,8 @@ class AiCar(Car):
         self.p_prev = start_pos
         self.p_next = start_pos
         self.time_at_0_speed = 0
-        self.death_reason = 0
-        self.dd = 0
+        self.genome_id = genome_id
+        self.n_net = nn.FeedForwardNetwork.create(genome, config)
 
 
     def tick(self, time_elapsed, rotation):
@@ -161,8 +161,6 @@ class AiCar(Car):
 
     def get_reward(self):
         if self.reward:
-            if self.death_reason == "Got too far":
-                pass
             reward = float((self.distance**2)/self.time)
             return reward
         else: return 0
@@ -260,12 +258,9 @@ class AiCar(Car):
 
 
     def brain_calc(self):
-        if self.dd >= 7:
-            self.death_reason = "Got too far"
-
-            self.state = 0
         d = self.get_current_dist()
-        self.dd = d
+        if d >= 7:
+            self.state = 0
 
         output = self.n_net.activate(self.get_data())
         if output[0] <= -1/3:

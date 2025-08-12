@@ -6,15 +6,14 @@ import pickle
 
 def eval_genomes(genomes, config):
     with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
-
+    global cars
     cars = []
     accel_values = [7, 10, 11, 12, 13, 14, 15]
     deccel_values = [14, 17, 18, 19, 20, 21, 22]
     for g_id, g in genomes:
-        net = neat.nn.FeedForwardNetwork.create(g, config)
         g.fitness = 0
         speed_index = r.randrange(0, 7)
-        cars.append(AiCar(0, 0, [0,0], 1, accel_values[speed_index], deccel_values[speed_index], net, cent_line))
+        cars.append(AiCar(0, 0, [0,0], 1, accel_values[speed_index], deccel_values[speed_index], g, g_id, config, cent_line))
 
     while True:
         remain_cars = 0
@@ -45,11 +44,17 @@ def run(config_path, generations):
     pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
-    pop.run(eval_genomes, generations)
+    best = pop.run(eval_genomes, generations)
     final_genomes = pop.population
     for genome_id, genome in final_genomes.items(): print(f"Genome ID: {genome_id}, Fitness: {genome.fitness}")
+    local_dir = os.path.dirname(__file__)
+    output_path = os.path.join(local_dir, 'winner.pickle')
+    with open(output_path, 'wb') as f:
+        pickle.dump(best, f)
+
+
 
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path, 10)
+    run(config_path, 30)

@@ -151,9 +151,8 @@ class AiCar(Car):
     def tick(self, time_elapsed, rotation):
         self.rotation = rotation
         super().tick(time_elapsed)
-        self.movement_calc()
         self.brain_calc()
-
+        self.movement_calc()
 
 
     def used_reward(self):

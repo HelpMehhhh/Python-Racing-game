@@ -13,22 +13,21 @@ def eval_genomes(genomes, config):
     for g_id, g in genomes:
         g.fitness = 0
         speed_index = r.randrange(0, 7)
-        cars.append(AiCar(0, 0, [0,0], 1, accel_values[speed_index], deccel_values[speed_index], g, g_id, config, cent_line))
+        cars.append(AiCar(0, 0, [0,0], 1, accel_values[speed_index], deccel_values[speed_index], g, config, cent_line))
 
-    while True:
-        remain_cars = 0
+    remain_cars = len(cars)
+    while remain_cars > 0:
+
         for i, car in enumerate(cars):
             if car.get_alive():
                 car.tick(17, 0)
-                remain_cars += 1
-
 
             else:
                 genomes[i][1].fitness += car.get_reward()
                 car.used_reward()
+                remain_cars -= 1
 
-        if remain_cars == 0:
-            break
+       
 
 
 def run(config_path, generations):
@@ -47,14 +46,15 @@ def run(config_path, generations):
     best = pop.run(eval_genomes, generations)
     final_genomes = pop.population
     for genome_id, genome in final_genomes.items(): print(f"Genome ID: {genome_id}, Fitness: {genome.fitness}")
-    local_dir = os.path.dirname(__file__)
-    output_path = os.path.join(local_dir, 'winner.pickle')
-    with open(output_path, 'wb') as f:
-        pickle.dump(best, f)
-
+    with open(os.path.join(local_dir, 'winner.pickle'), 'wb') as f: pickle.dump(best, f)
+    for car in cars:
+        genome = car.get_genome()
+        if genome == best:
+            conf = car.get_config()
+            with open(os.path.join(local_dir, 'genome_config.pickle'), 'wb') as f: pickle.dump(conf, f)
 
 
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path, 30)
+    run(config_path, 50)

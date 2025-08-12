@@ -7,7 +7,8 @@ from pygame import gfxdraw
 import sympy as sym
 from numba import jit
 import pickle
-from cars import PlayerCar
+import cars
+from random import randrange
 
 pg.init()
 
@@ -112,9 +113,15 @@ class Game():
         with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
 
         with open(os.path.join(local_dir, 'parallel_points_01.pickle'), 'rb') as f: self.para_lines = pickle.load(f)
+        with open(os.path.join(local_dir, 'winner.pickle'), 'rb') as f: g = pickle.load(f)
+        with open(os.path.join(local_dir, 'genome_config.pickle'), 'rb') as f: conf = pickle.load(f)
+        accel_values = [7, 10, 11, 12, 13, 14, 15]
+        deccel_values = [14, 17, 18, 19, 20, 21, 22]
+        speed_index = randrange(0, 7)
 
-        self.player = PlayerCar(self.screen, self, [0, 0.5])
-        self.cars = [self.player]
+
+        self.player = cars.PlayerCar(self.screen, self, [0, 0.5])
+        self.cars = [cars.AiCar(self.screen, self, [0, 0.5], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)]
         self.screen_center = self.player.pos
         self.rescale()
 
@@ -147,7 +154,8 @@ class Game():
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        for car in self.cars: car.tick(time_elapsed)
+        self.player.tick(time_elapsed)
+        for car in self.cars: car.tick(time_elapsed, self.rotation)
         self.screen_center = self.player.pos
         self.rotation = -self.player.car_angle
 

@@ -3,3 +3,4 @@ numpy
 sympy
 numba
 neat-python
+scipy

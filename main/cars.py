@@ -176,12 +176,12 @@ class AiCar(Car):
     def get_distance_intersect(self, other_seg_point, closest_cl_point):
         if abs(other_seg_point[1]-closest_cl_point[1]) > abs(other_seg_point[0]-closest_cl_point[0]):
             m = ((other_seg_point[0]-closest_cl_point[0])/(other_seg_point[1]-closest_cl_point[1]))
-
+            y = (self.pos[1]+m*self.pos[0]+(m**2)*closest_cl_point[1]-m*closest_cl_point[0])/((m**2)+1)
+            x = (m*self.pos[1]+(m**2)*self.pos[0]+(m**3)*closest_cl_point[1]-(m**2)*closest_cl_point[0])/((m**2)+1)-m*closest_cl_point[1]+closest_cl_point[0]
         else:
             m = ((other_seg_point[1]-closest_cl_point[1])/(other_seg_point[0]-closest_cl_point[0]))
-
-        x = (self.pos[0]+m*self.pos[1]+(m**2)*closest_cl_point[0]-m*closest_cl_point[1])/((m**2)+1)
-        y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*closest_cl_point[0]-(m**2)*closest_cl_point[1])/((m**2)+1)-m*closest_cl_point[1]+closest_cl_point[1]
+            x = (self.pos[0]+m*self.pos[1]+(m**2)*closest_cl_point[0]-m*closest_cl_point[1])/((m**2)+1)
+            y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*closest_cl_point[0]-(m**2)*closest_cl_point[1])/((m**2)+1)-m*closest_cl_point[0]+closest_cl_point[1]
         lower_bound = min(other_seg_point[0], closest_cl_point[0])
         upper_bound = max(other_seg_point[0], closest_cl_point[0])
         d = np.linalg.norm(np.array(self.pos) - np.array([x, y]))

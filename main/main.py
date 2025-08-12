@@ -121,7 +121,7 @@ class Game():
 
 
         self.player = cars.PlayerCar(self.screen, self, [0, 0.5])
-        self.cars = [cars.AiCar(self.screen, self, [0, 0.5], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)]
+        self.cars = [cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)]
         self.screen_center = self.player.pos
         self.rescale()
 

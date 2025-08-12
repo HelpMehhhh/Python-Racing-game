@@ -77,10 +77,10 @@ class Car():
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
         self.car_angle += float(d_angle)
-        self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle+1.570796327))
-        self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle+1.570796327))
-        if self.car_angle >= 6.283185307: self.car_angle -= 6.283185307
-        if self.car_angle <= -6.283185307: self.car_angle += 6.283185307
+        self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle+np.pi/2))
+        self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle+np.pi/2))
+        if self.car_angle >= 2*np.pi: self.car_angle -= 2*np.pi
+        if self.car_angle <= 0: self.car_angle += 2*np.pi
 
 
     def draw(self):
@@ -235,37 +235,26 @@ class AiCar(Car):
             self.p_prev = d_prev[2]
             self.p_next = d_next[2]
 
-
         return d
 
 
 
     def get_data(self):
-        data = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-        point = [self.cl_points[self.target_cl_index][0] + -1*self.pos[0], self.cl_points[self.target_cl_index][1] + -1*self.pos[1]]
-        if abs(self.car_angle) > np.pi:
-            angle = self.car_angle + np.sign(self.car_angle)*-(2*np.pi)
+        data = []
 
-        else: angle = self.car_angle
+        prev_angle = self.car_angle - 2*np.pi if self.car_angle > np.pi else self.car_angle
+        prev_angle += np.pi/2
 
-        prev_angle = np.arctan2(point[0], point[1])
-        data[0] = float(prev_angle + angle)
-        d = np.linalg.norm(np.array(self.pos) - np.array(self.cl_points[self.target_cl_index]))
-        data[1] = float(d)
-        index = self.target_cl_index
-        for i in range(2, 9, 2):
-            if index == (len(self.cl_points)-1): index = -1
-            point = [self.cl_points[index+1][0] + -1*self.cl_points[index][0], self.cl_points[index+1][1] + -1*self.cl_points[index][1]]
-            point_angle = np.arctan2(point[0], point[1])
-            data[i] =  float(-1*prev_angle + point_angle)
-            index = index+1
-            prev_angle=point_angle
-            new_index = self.target_cl_index+(i // 2)
-            if new_index >= (len(self.cl_points)-1):
-                new_index = -1 + (new_index-(len(self.cl_points)-1))
+        prev_point = np.array(self.pos)
+        for i in range(0, 5):
+            next_point = np.array(self.cl_points[(self.target_cl_index+i)%len(self.cl_points)])
+            cur_vector = next_point - prev_point
+            cur_angle = np.arctan2(cur_vector[1], cur_vector[0])
 
-            d = np.linalg.norm(np.array(self.cl_points[new_index-1]) - np.array(self.cl_points[new_index]))
-            data[i+1] = float(d)
+            data.append(float((cur_angle - prev_angle)/np.pi))
+            data.append(float(np.linalg.norm(cur_vector)))
+            prev_point = next_point
+            prev_angle = cur_angle
 
         return data
 
@@ -287,15 +276,6 @@ class AiCar(Car):
 
         else: self.speedstate = self.SpeedState.const
 
-        if self.time == (self.time_elapsed/1000)*100:
-            if self.speed == 0: self.state = 0
-            print("fired")
-        if self.speed == 0:
-            self.time_at_0_speed += 0.001
-        else: self.time_at_0_speed = 0
-        if self.time_at_0_speed >= 0.012:
-            self.state = 0
-            self.death_reason = "Sat still for too long"
         self.time += self.time_elapsed/1000
         #print(self.speed*3600, self.distance)
 

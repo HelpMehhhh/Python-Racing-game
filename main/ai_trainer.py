@@ -27,7 +27,7 @@ def eval_genomes(genomes, config):
                 car.used_reward()
                 remain_cars -= 1
 
-       
+
 
 
 def run(config_path, generations):

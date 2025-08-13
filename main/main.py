@@ -107,7 +107,6 @@ class Game():
     def __init__(self, screen):
         self.screen = screen
         self.screen.fill((0,0,0))
-        self.rotation = 0
         self.zoom = 0.4
         local_dir = os.path.dirname(__file__)
         with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
@@ -119,9 +118,10 @@ class Game():
         deccel_values = [14, 17, 18, 19, 20, 21, 22]
         speed_index = randrange(0, 7)
 
-
+        #cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)
         self.player = cars.PlayerCar(self.screen, self, [0, 0.5])
-        self.cars = [cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)]
+        self.rotation = self.player.car_angle
+        self.cars = []
         self.screen_center = self.player.pos
         self.rescale()
 
@@ -157,12 +157,12 @@ class Game():
         self.player.tick(time_elapsed)
         for car in self.cars: car.tick(time_elapsed, self.rotation)
         self.screen_center = self.player.pos
-        self.rotation = -self.player.car_angle
+        self.rotation = self.player.car_angle
 
 
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
-        rotate = np.array([[np.cos(self.rotation), (np.sin(self.rotation))], [-np.sin(self.rotation), np.cos(self.rotation)]], dtype=np.float64)
+        rotate = np.array([[np.cos(self.rotation), (-np.sin(self.rotation))], [np.sin(self.rotation), np.cos(self.rotation)]], dtype=np.float64)
         self.rotation_matrix = rotate
         scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)

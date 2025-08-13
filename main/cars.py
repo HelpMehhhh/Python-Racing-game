@@ -55,7 +55,7 @@ class Car():
         else:
             if np.sign(self.turning_angle) != np.sign(self.steerstate): chg *= 3
             self.turning_angle += chg*self.steerstate
-            if self.turning_angle > 0.5236 or self.turning_angle < -0.5236: self.turning_angle = float(0.5236*np.sign(self.turning_angle))
+            if self.turning_angle > np.pi/6 or self.turning_angle < -np.pi/6: self.turning_angle = float(np.pi/6*np.sign(self.turning_angle))
 
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
@@ -77,10 +77,10 @@ class Car():
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
         self.car_angle += float(d_angle)
-        self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle+np.pi/2))
-        self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle+np.pi/2))
-        if self.car_angle >= 2*np.pi: self.car_angle -= 2*np.pi
-        if self.car_angle <= 0: self.car_angle += 2*np.pi
+        self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle))
+        self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle))
+        if self.car_angle > np.pi: self.car_angle -= 2*np.pi
+        if self.car_angle < -np.pi: self.car_angle += 2*np.pi
 
 
     def draw(self):

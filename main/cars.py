@@ -22,7 +22,7 @@ class Car():
         self.color_id = color_id
         self.turning_angle = 0
         self.tire_direct = 0
-        self.car_angle = 0
+        self.car_angle = np.pi/2
         self.prev_car_angle = 0
         self.speed = 0
         self.radius = 0
@@ -30,9 +30,6 @@ class Car():
         self.turn_timer = 0
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
-        self.a = 0
-        self.tt = 0.005
-        self.tspeed = 0
         self.simulation = simulation
 
 
@@ -75,6 +72,8 @@ class Car():
         if self.speed > max_speed:
             radius = ((self.speed*1000)**2)/50
 
+        if self.speed > 0:
+            pass
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
         self.car_angle += float(d_angle)
         self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle))

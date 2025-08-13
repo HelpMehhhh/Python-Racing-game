@@ -162,7 +162,7 @@ class Game():
 
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
-        rotate = np.array([[np.cos(self.rotation), (-np.sin(self.rotation))], [np.sin(self.rotation), np.cos(self.rotation)]], dtype=np.float64)
+        rotate = np.array([[np.sin(self.rotation), (np.cos(self.rotation))], [-np.cos(self.rotation), np.sin(self.rotation)]], dtype=np.float64)
         self.rotation_matrix = rotate
         scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)

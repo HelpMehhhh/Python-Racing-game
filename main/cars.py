@@ -38,6 +38,7 @@ class Car():
 
 
     def get_data_seg(self, first_point, second_point):
+        result = []
         if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
             m = ((first_point[0]-second_point[0])/(first_point[1]-second_point[1]))
             y = (self.pos[1]+m*self.pos[0]+(m**2)*second_point[1]-m*second_point[0])/((m**2)+1)
@@ -46,20 +47,28 @@ class Car():
             m = ((first_point[1]-second_point[1])/(first_point[0]-second_point[0]))
             x = (self.pos[0]+m*self.pos[1]+(m**2)*second_point[0]-m*second_point[1])/((m**2)+1)
             y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*second_point[0]-(m**2)*second_point[1])/((m**2)+1)-m*second_point[0]+second_point[1]
-        lower_bound = min(first_point[0], second_point[0])
-        upper_bound = max(first_point[0], second_point[0])
-        d = np.linalg.norm(np.array(self.pos) - np.array([x, y]))
-        if not lower_bound <= x <= upper_bound: return [False, d, (x, y)]
-        return [True, d, (x, y)]
+        x_lower_bound = min(first_point[0], second_point[0])
+        x_upper_bound = max(first_point[0], second_point[0])
+        y_lower_bound = min(first_point[1], second_point[1])
+        y_upper_bound = max(first_point[1], second_point[1])
+        if x > x_upper_bound: 
+            if x_lower_bound in first_point: point = first_point
+            else: point = second_point 
+        elif y > y_upper_bound:
+        elif x < x_lower_bound:
+        elif y < y_lower_bound:
+        y_range_result = True if y_lower_bound <= y <= y_upper_bound else False
+            
+        result.append(np.linalg.norm(np.array(self.pos) - np.array([x, y])))
+        result.append((x,y))
+        return result
+
 
 
     def get_current_seg(self):
-        for i in range(0, len(self.cl_points)+1, 2):
-            if self.cl_points[i-1] == self.cl_points[-1] and i != 0:
-                seg_data = self.get_data_seg(self.cl_points[i-1], self.cl_points[0])
-
-            seg_data = self.get_data_seg(self.cl_points[i], self.cl_points[i+1])
-        
+        for i, point in enumerate(self.cl_points):   
+            seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
+      
 
 
         for i in range(len(self.cl_points)):

@@ -32,32 +32,47 @@ class Car():
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
         self.simulation = simulation
+        
+
+        self.current_seg = ()
 
 
-    def get_distance_intersect(self, other_seg_point, closest_cl_point):
-        if abs(other_seg_point[1]-closest_cl_point[1]) > abs(other_seg_point[0]-closest_cl_point[0]):
-            m = ((other_seg_point[0]-closest_cl_point[0])/(other_seg_point[1]-closest_cl_point[1]))
-            y = (self.pos[1]+m*self.pos[0]+(m**2)*closest_cl_point[1]-m*closest_cl_point[0])/((m**2)+1)
-            x = (m*self.pos[1]+(m**2)*self.pos[0]+(m**3)*closest_cl_point[1]-(m**2)*closest_cl_point[0])/((m**2)+1)-m*closest_cl_point[1]+closest_cl_point[0]
+    def get_data_seg(self, first_point, second_point):
+        if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
+            m = ((first_point[0]-second_point[0])/(first_point[1]-second_point[1]))
+            y = (self.pos[1]+m*self.pos[0]+(m**2)*second_point[1]-m*second_point[0])/((m**2)+1)
+            x = (m*self.pos[1]+(m**2)*self.pos[0]+(m**3)*second_point[1]-(m**2)*second_point[0])/((m**2)+1)-m*second_point[1]+second_point[0]
         else:
-            m = ((other_seg_point[1]-closest_cl_point[1])/(other_seg_point[0]-closest_cl_point[0]))
-            x = (self.pos[0]+m*self.pos[1]+(m**2)*closest_cl_point[0]-m*closest_cl_point[1])/((m**2)+1)
-            y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*closest_cl_point[0]-(m**2)*closest_cl_point[1])/((m**2)+1)-m*closest_cl_point[0]+closest_cl_point[1]
-        lower_bound = min(other_seg_point[0], closest_cl_point[0])
-        upper_bound = max(other_seg_point[0], closest_cl_point[0])
+            m = ((first_point[1]-second_point[1])/(first_point[0]-second_point[0]))
+            x = (self.pos[0]+m*self.pos[1]+(m**2)*second_point[0]-m*second_point[1])/((m**2)+1)
+            y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*second_point[0]-(m**2)*second_point[1])/((m**2)+1)-m*second_point[0]+second_point[1]
+        lower_bound = min(first_point[0], second_point[0])
+        upper_bound = max(first_point[0], second_point[0])
         d = np.linalg.norm(np.array(self.pos) - np.array([x, y]))
         if not lower_bound <= x <= upper_bound: return [False, d, (x, y)]
         return [True, d, (x, y)]
 
 
-    def get_current_dist(self):
-        c_d = float('inf')
-        index = 0
-        for i, point in enumerate(self.cl_points):
+    def get_current_seg(self):
+        for i in range(0, len(self.cl_points)+1, 2):
+            if self.cl_points[i-1] == self.cl_points[-1] and i != 0:
+                seg_data = self.get_data_seg(self.cl_points[i-1], self.cl_points[0])
+
+            seg_data = self.get_data_seg(self.cl_points[i], self.cl_points[i+1])
+        
+
+
+        for i in range(len(self.cl_points)):
             d = np.linalg.norm(np.array(self.pos) - np.array(point))
             if float(d) < float(c_d):
                 c_d = d
                 index = i
+
+
+
+    def get_current_dist(self):
+        
+        
 
 
         closest_cl_point = self.cl_points[index]
@@ -241,8 +256,6 @@ class AiCar(Car):
     def get_reward(self):
         if self.reward: return float((self.distance**2)/self.time)
         else: return 0
-
-
 
 
 

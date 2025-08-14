@@ -238,20 +238,29 @@ class AiCar(Car):
 
 
 
-    def get_data(self):
-        data = []
+    def get_data(self, d):
+        #returns should be floats, function insides should be handled with numpy
+        data = [float(d)]
 
-        prev_angle = self.car_angle - 2*np.pi if self.car_angle > np.pi else self.car_angle
-        prev_angle += np.pi/2
+        origin_point = np.array(self.pos)
+        origin_angle = self.car_angle
+        target_point = np.array(self.cl_points[(self.target_cl_index)])
+        prev_point = np.array(self.cl_points[(self.target_cl_index-1)])
+        origin_target_vec = target_point - origin_point
+        data.append(float(np.linalg.norm(origin_target_vec)))
+        prev_target_vec = target_point - prev_point
+        target_angle = np.arctan2(prev_target_vec[1], prev_target_vec[0])
+        data.append(float(target_angle - origin_angle))
 
-        prev_point = np.array(self.pos)
-        for i in range(0, 5):
+
+        prev_angle = target_angle
+        prev_point = target_point
+        for i in range(1, 5):
             next_point = np.array(self.cl_points[(self.target_cl_index+i)%len(self.cl_points)])
             cur_vector = next_point - prev_point
             cur_angle = np.arctan2(cur_vector[1], cur_vector[0])
-
-            data.append(float((cur_angle - prev_angle)/np.pi))
             data.append(float(np.linalg.norm(cur_vector)))
+            data.append(float((cur_angle - prev_angle)/np.pi))
             prev_point = next_point
             prev_angle = cur_angle
 
@@ -262,7 +271,7 @@ class AiCar(Car):
         d = self.get_current_dist()
         if d >= 7:
             self.state = 0
-        output = self.n_net.activate(self.get_data())
+        output = self.n_net.activate(self.get_data(d))
         if output[0] <= -1/3: self.steerstate = self.SteerState.left
 
         elif output[0] >= 1/3: self.steerstate = self.SteerState.right

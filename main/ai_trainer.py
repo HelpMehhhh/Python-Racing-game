@@ -57,4 +57,4 @@ def run(config_path, generations):
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path, 50)
+    run(config_path, 20)

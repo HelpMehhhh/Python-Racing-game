@@ -118,7 +118,7 @@ class Game():
         deccel_values = [14, 17, 18, 19, 20, 21, 22]
         speed_index = randrange(0, 7)
 
-        #cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)
+        cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)
         self.player = cars.PlayerCar(self.screen, self, [0, 0.5])
         self.rotation = self.player.car_angle
         self.cars = []

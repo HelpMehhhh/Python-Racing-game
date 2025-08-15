@@ -185,7 +185,7 @@ class AiCar(Car):
         closest_seg_data = 0
         for i, point in enumerate(self.cl_points):
             seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
-            if float(seg_data[0]) < float(c_d):
+            if abs(float(seg_data[0])) < abs(float(c_d)):
                 c_d = seg_data[0]
                 index = (i+1)%len(self.cl_points)
                 closest_seg_data = seg_data
@@ -225,8 +225,15 @@ class AiCar(Car):
                 if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
                 elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
                 else: point = (x,y)
-
-        result.append(np.linalg.norm(np.array(self.pos) - np.array(point)))
+        car_point_vec = np.array(self.pos) - np.array(point)
+        car_point_angle = np.arctan2(car_point_vec[1], car_point_vec[0])
+        seg_vec = np.array(second_point) - np.array(first_point)
+        seg_angle = np.arctan2(seg_vec[1], seg_vec[0])
+        result_angle = car_point_angle - seg_angle
+        if result_angle < -np.pi: result_angle += np.pi
+        if result_angle >  np.pi: result_angle -= np.pi
+        distance = np.linalg.norm(car_point_vec)
+        result.append(distance if result_angle > 0 else -distance)
         result.append(point)
         return result
 
@@ -260,7 +267,7 @@ class AiCar(Car):
 
     def brain_calc(self):
         d = self.get_current_dist()
-        if d >= 7:
+        if abs(d) >= 7:
             self.state = 0
         output = self.n_net.activate(self.get_data(d))
         if output[0] <= -1/3: self.steerstate = self.SteerState.left

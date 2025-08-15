@@ -29,73 +29,12 @@ class Car():
         self.speedstate = self.SpeedState.const
         self.simulation = simulation
 
-        self.prev_cl_point = self.pos
-        self.target_cl_index = 1
-        self.distance = 0
-
-
-    def get_data_seg(self, first_point, second_point):
-        result = []
-        if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
-            m = ((first_point[0]-second_point[0])/(first_point[1]-second_point[1]))
-            y = (self.pos[1]+m*self.pos[0]+(m**2)*second_point[1]-m*second_point[0])/((m**2)+1)
-            x = (m*self.pos[1]+(m**2)*self.pos[0]+(m**3)*second_point[1]-(m**2)*second_point[0])/((m**2)+1)-m*second_point[1]+second_point[0]
-        else:
-            m = ((first_point[1]-second_point[1])/(first_point[0]-second_point[0]))
-            x = (self.pos[0]+m*self.pos[1]+(m**2)*second_point[0]-m*second_point[1])/((m**2)+1)
-            y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*second_point[0]-(m**2)*second_point[1])/((m**2)+1)-m*second_point[0]+second_point[1]
-        x_lower_bound = min(first_point[0], second_point[0])
-        x_upper_bound = max(first_point[0], second_point[0])
-        y_lower_bound = min(first_point[1], second_point[1])
-        y_upper_bound = max(first_point[1], second_point[1])
-        if m != 0:
-            if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
-            elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
-            else: point = (x,y)
-
-        else:
-            if x_lower_bound == x_upper_bound:
-                if y > y_upper_bound: point = first_point if y_upper_bound in first_point else second_point
-                elif y < y_lower_bound: point = first_point if y_lower_bound in first_point else second_point
-                else: point = (x,y)
-            elif y_lower_bound == y_upper_bound:
-                if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
-                elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
-                else: point = (x,y)
-
-        result.append(np.linalg.norm(np.array(self.pos) - np.array(point)))
-        result.append(point)
-        return result
-
-
-    def get_current_seg(self):
-        c_d = float('inf')
-        index = 0
-        closest_seg_data = 0
-        for i, point in enumerate(self.cl_points):
-            seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
-            if float(seg_data[0]) < float(c_d):
-                c_d = seg_data[0]
-                index = (i+1)%len(self.cl_points)
-                closest_seg_data = seg_data
-        self.target_cl_index = index
-        return closest_seg_data
-
-
-    def get_current_dist(self):
-
-        seg_data = self.get_current_seg()
-        self.distance += float(np.linalg.norm(np.array(self.prev_cl_point) - np.array(seg_data[1])))
-        self.prev_cl_point = seg_data[1]
-
-
-
-        return seg_data[0]
 
 
     def tick(self, time_elapsed):
         self.time_elapsed = time_elapsed
         if not self.simulation: self.draw()
+
 
 
     def movement_calc(self):
@@ -124,16 +63,12 @@ class Car():
 
         if self.turning_angle != 0:
             radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
-            #print(radius)
 
         else: radius = 0
         max_speed = np.sqrt(radius*50)/1000
-        #
         if self.speed > max_speed:
             radius = ((self.speed*1000)**2)/50
 
-        if self.speed > 0:
-            pass
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
         self.car_angle += float(d_angle)
         self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle))
@@ -142,12 +77,13 @@ class Car():
         if self.car_angle < -np.pi: self.car_angle += 2*np.pi
 
 
+
     def draw(self):
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
         self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.prev_cl_point), 5)
-        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 5)
+
+
 
 
 
@@ -165,30 +101,26 @@ class PlayerCar(Car):
     def control(self, event):
         if (event.type == pg.KEYUP):
             if (event.key in (pg.K_d, pg.K_a)): self.steerstate = self.SteerState.center
-
             if (event.key in (pg.K_UP, pg.K_DOWN)): self.speedstate = self.SpeedState.const
 
         elif (event.type == pg.KEYDOWN):
             if (event.key == pg.K_d): self.steerstate = self.SteerState.right
-
             elif (event.key == pg.K_a): self.steerstate = self.SteerState.left
-
             if (event.key == pg.K_UP): self.speedstate = self.SpeedState.accel
-
             elif (event.key == pg.K_DOWN): self.speedstate = self.SpeedState.deccel
+
 
 
     def tick(self, time_elapsed):
         super().tick(time_elapsed)
-        r = self.get_current_dist()
-
-        print(round(r,2), round(self.distance,2), self.target_cl_index)
         self.movement_calc()
+
 
 
     def draw(self):
         super().draw()
         self.screen.blit(self.car, self.car_rect)
+
 
 
 
@@ -205,12 +137,14 @@ class AiCar(Car):
         self.distance = 0
         self.time = 0
         self.reward = True
-        self.target_cl_index = 1
-        self.p_prev = start_pos
-        self.p_next = start_pos
         self.genome = genome
         self.config = config
         self.n_net = nn.FeedForwardNetwork.create(self.genome, self.config)
+
+        self.prev_cl_point = self.pos
+        self.target_cl_index = 1
+        self.distance = 0
+
 
 
     def tick(self, time_elapsed, rotation):
@@ -230,17 +164,77 @@ class AiCar(Car):
     def used_reward(self): self.reward = False
 
 
+
     def get_reward(self):
         if self.reward: return float((self.distance**2)/self.time)
         else: return 0
 
 
 
+    def get_current_dist(self):
+        seg_data = self.get_current_seg()
+        self.distance += float(np.linalg.norm(np.array(self.prev_cl_point) - np.array(seg_data[1])))
+        self.prev_cl_point = seg_data[1]
+        return seg_data[0]
+
+
+
+    def get_current_seg(self):
+        c_d = float('inf')
+        index = 0
+        closest_seg_data = 0
+        for i, point in enumerate(self.cl_points):
+            seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
+            if float(seg_data[0]) < float(c_d):
+                c_d = seg_data[0]
+                index = (i+1)%len(self.cl_points)
+                closest_seg_data = seg_data
+
+        self.target_cl_index = index
+        return closest_seg_data
+
+
+
+    def get_data_seg(self, first_point, second_point):
+        result = []
+        if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
+            m = ((first_point[0]-second_point[0])/(first_point[1]-second_point[1]))
+            y = (self.pos[1]+m*self.pos[0]+(m**2)*second_point[1]-m*second_point[0])/((m**2)+1)
+            x = (m*self.pos[1]+(m**2)*self.pos[0]+(m**3)*second_point[1]-(m**2)*second_point[0])/((m**2)+1)-m*second_point[1]+second_point[0]
+
+        else:
+            m = ((first_point[1]-second_point[1])/(first_point[0]-second_point[0]))
+            x = (self.pos[0]+m*self.pos[1]+(m**2)*second_point[0]-m*second_point[1])/((m**2)+1)
+            y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*second_point[0]-(m**2)*second_point[1])/((m**2)+1)-m*second_point[0]+second_point[1]
+
+        x_lower_bound = min(first_point[0], second_point[0])
+        x_upper_bound = max(first_point[0], second_point[0])
+        y_lower_bound = min(first_point[1], second_point[1])
+        y_upper_bound = max(first_point[1], second_point[1])
+        if m != 0:
+            if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
+            elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
+            else: point = (x,y)
+
+        else:
+            if x_lower_bound == x_upper_bound:
+                if y > y_upper_bound: point = first_point if y_upper_bound in first_point else second_point
+                elif y < y_lower_bound: point = first_point if y_lower_bound in first_point else second_point
+                else: point = (x,y)
+            elif y_lower_bound == y_upper_bound:
+                if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
+                elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
+                else: point = (x,y)
+
+        result.append(np.linalg.norm(np.array(self.pos) - np.array(point)))
+        result.append(point)
+        return result
+
+
 
     def get_data(self, d):
         #returns should be floats, function insides should be handled with numpy
         data = [float(d)]
-
         origin_point = np.array(self.pos)
         origin_angle = self.car_angle
         target_point = np.array(self.cl_points[(self.target_cl_index)])
@@ -250,8 +244,6 @@ class AiCar(Car):
         prev_target_vec = target_point - prev_point
         target_angle = np.arctan2(prev_target_vec[1], prev_target_vec[0])
         data.append(float(target_angle - origin_angle))
-
-
         prev_angle = target_angle
         prev_point = target_point
         for i in range(1, 5):

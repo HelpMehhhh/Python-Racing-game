@@ -107,7 +107,7 @@ class Game():
     def __init__(self, screen):
         self.screen = screen
         self.screen.fill((0,0,0))
-        self.zoom = 0.4
+        self.zoom = 0.1
         local_dir = os.path.dirname(__file__)
         with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
 

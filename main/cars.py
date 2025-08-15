@@ -28,6 +28,7 @@ class Car():
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
         self.simulation = simulation
+        self.radius = 0
 
 
 
@@ -62,14 +63,14 @@ class Car():
                 self.speed += self.time_elapsed*self.max_accel
 
         if self.turning_angle != 0:
-            radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
+            self.radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
 
-        else: radius = 0
-        max_speed = np.sqrt(radius*50)/1000
+        else: self.radius = 0
+        max_speed = np.sqrt(self.radius*50)/1000
         if self.speed > max_speed:
-            radius = ((self.speed*1000)**2)/50
+            self.radius = ((self.speed*1000)**2)/50
 
-        d_angle = np.sign(self.turning_angle)*((self.speed/radius)*self.time_elapsed) if radius != 0 else 0
+        d_angle = np.sign(self.turning_angle)*((self.speed/self.radius)*self.time_elapsed) if self.radius != 0 else 0
         self.car_angle += float(d_angle)
         self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle))
         self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle))
@@ -129,6 +130,8 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
+    SpeedRewardThreshold = 500
+
     def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):
         Car.__init__(self, screen, game, start_pos, cl_points, color_id, simulation)
         self.max_accel = max_accel/1000000
@@ -136,7 +139,6 @@ class AiCar(Car):
         self.state = 1 #1 for alive, 0 for dead
         self.distance = 0
         self.time = 0
-        self.reward = True
         self.genome = genome
         self.config = config
         self.n_net = nn.FeedForwardNetwork.create(self.genome, self.config)
@@ -161,13 +163,13 @@ class AiCar(Car):
 
     def get_genome(self): return self.genome
 
-    def used_reward(self): self.reward = False
+
 
 
 
     def get_reward(self):
-        if self.reward: return float((self.distance**2)/self.time)
-        else: return 0
+        if self.distance < self.SpeedRewardThreshold: return self.distance
+        return float(self.distance*(1+(self.distance-self.SpeedRewardThreshold)/self.time))
 
 
 
@@ -219,7 +221,7 @@ class AiCar(Car):
 
     def get_data(self, d):
         #returns should be floats, function insides should be handled with numpy
-        data = [self.turning_angle, float(d)]
+        data = [self.turning_angle, self.speed, self.radius, float(d)]
         origin_point = np.array(self.pos)
         origin_angle = self.car_angle
         target_point = np.array(self.cl_points[(self.target_cl_index)])
@@ -246,6 +248,10 @@ class AiCar(Car):
     def brain_calc(self):
         d = self.get_current_dist()
         if abs(d) >= 7:
+            if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time, abs(d))
+            self.state = 0
+        if self.time > 2 and (self.distance/self.time < 5):
+            if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time)
             self.state = 0
         output = self.n_net.activate(self.get_data(d))
         if output[0] <= -1/3: self.steerstate = self.SteerState.left

@@ -3,6 +3,8 @@ import neat
 from cars import AiCar
 import random as r
 import pickle
+import cProfile
+import pstats
 
 def eval_genomes(genomes, config):
     with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
@@ -52,8 +54,12 @@ def run(config_path, generations):
             conf = car.get_config()
             with open(os.path.join(local_dir, 'genome_config.pickle'), 'wb') as f: pickle.dump(conf, f)
 
-
 if __name__ == '__main__':
+    profiler = cProfile.Profile()
+    profiler.enable()
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path, None)
+    run(config_path, 10)
+    profiler.disable()
+    stats = pstats.Stats(profiler).sort_stats('cumulative')
+    stats.print_stats()

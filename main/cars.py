@@ -80,6 +80,11 @@ class Car():
 
         return seg_data[0]
 
+    def get_reward(self):
+        return float((self.distance**2)/self.time)
+
+
+
 
     def tick(self, time_elapsed):
         self.time_elapsed = time_elapsed
@@ -147,6 +152,7 @@ class PlayerCar(Car):
         Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
         self.max_accel = 15/1000000
         self.max_deccel = 22/1000000
+        self.time = 1
 
 
 
@@ -169,9 +175,10 @@ class PlayerCar(Car):
     def tick(self, time_elapsed):
         super().tick(time_elapsed)
         r = self.get_current_dist()
-
-        print(round(r,2), round(self.distance,2), self.target_cl_index)
+        reward = self.get_reward()
+        print(round(r,2), round(self.distance,2), reward)
         self.movement_calc()
+        self.time += self.time_elapsed/1000
 
 
     def draw(self):
@@ -218,9 +225,6 @@ class AiCar(Car):
     def used_reward(self): self.reward = False
 
 
-    def get_reward(self):
-        if self.reward: return float((self.distance**2)/self.time)
-        else: return 0
 
 
 

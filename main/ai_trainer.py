@@ -23,10 +23,9 @@ def eval_genomes(genomes, config):
                 car.tick(17, 0)
 
             else:
-                print(car.get_reward())
+                #print(car.get_reward())
                 genomes[i][1].fitness = car.get_reward()
 
-                car.used_reward()
                 remain_cars -= 1
 
 

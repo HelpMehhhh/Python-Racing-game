@@ -51,16 +51,23 @@ class Car():
         x_upper_bound = max(first_point[0], second_point[0])
         y_lower_bound = min(first_point[1], second_point[1])
         y_upper_bound = max(first_point[1], second_point[1])
-        if x > x_upper_bound: 
-            if x_lower_bound in first_point: point = first_point
-            else: point = second_point 
-        elif y > y_upper_bound:
-        elif x < x_lower_bound:
-        elif y < y_lower_bound:
-        y_range_result = True if y_lower_bound <= y <= y_upper_bound else False
+        if m != 0:    
+            if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
+            elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
+            else: point = (x,y)
+
+        else:
+            if x_lower_bound == x_upper_bound: 
+                if y > y_upper_bound: point = first_point if y_upper_bound in first_point else second_point
+                elif y < y_lower_bound: point = first_point if y_lower_bound in first_point else second_point
+                else: point = (x,y)
+            elif y_lower_bound == y_upper_bound:
+                if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
+                elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
+                else: point = (x,y)
             
         result.append(np.linalg.norm(np.array(self.pos) - np.array([x, y])))
-        result.append((x,y))
+        result.append(point)
         return result
 
 

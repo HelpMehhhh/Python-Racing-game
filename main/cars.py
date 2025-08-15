@@ -202,7 +202,9 @@ class AiCar(Car):
         t = ((first_point[0]-self.pos[0])*(first_point[0]-second_point[0])-(first_point[1]-self.pos[1])*(second_point[1]-first_point[1]))/((second_point[1]-first_point[1])**2+(second_point[0]-first_point[0])**2)
         first_point = np.array(first_point)
         second_point = np.array(second_point)
-        p = first_point+t(second_point - first_point)
+        if t < 0: p = first_point
+        elif t > 1: p = second_point
+        else: p = first_point+t*(second_point - first_point)
         if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
             dist_sign = np.sign((p[0]-self.pos[0])/(second_point[1]-first_point[1]))
 

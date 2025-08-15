@@ -89,6 +89,7 @@ class Car():
         self.prev_cl_point = seg_data[1]
 
 
+
         return seg_data[0]
 
 
@@ -145,6 +146,8 @@ class Car():
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
         self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
+        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.prev_cl_point), 5)
+        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 5)
 
 
 
@@ -186,6 +189,7 @@ class PlayerCar(Car):
     def draw(self):
         super().draw()
         self.screen.blit(self.car, self.car_rect)
+
 
 
 

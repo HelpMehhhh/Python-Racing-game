@@ -197,44 +197,20 @@ class AiCar(Car):
 
     def get_data_seg(self, first_point, second_point):
         result = []
+
+
+        t = ((first_point[0]-self.pos[0])*(first_point[0]-second_point[0])-(first_point[1]-self.pos[1])*(second_point[1]-first_point[1]))/((second_point[1]-first_point[1])**2+(second_point[0]-first_point[0])**2)
+        first_point = np.array(first_point)
+        second_point = np.array(second_point)
+        p = first_point+t(second_point - first_point)
         if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
-            m = ((first_point[0]-second_point[0])/(first_point[1]-second_point[1]))
-            y = (self.pos[1]+m*self.pos[0]+(m**2)*second_point[1]-m*second_point[0])/((m**2)+1)
-            x = (m*self.pos[1]+(m**2)*self.pos[0]+(m**3)*second_point[1]-(m**2)*second_point[0])/((m**2)+1)-m*second_point[1]+second_point[0]
+            dist_sign = np.sign((p[0]-self.pos[0])/(second_point[1]-first_point[1]))
 
         else:
-            m = ((first_point[1]-second_point[1])/(first_point[0]-second_point[0]))
-            x = (self.pos[0]+m*self.pos[1]+(m**2)*second_point[0]-m*second_point[1])/((m**2)+1)
-            y = (m*self.pos[0]+(m**2)*self.pos[1]+(m**3)*second_point[0]-(m**2)*second_point[1])/((m**2)+1)-m*second_point[0]+second_point[1]
+            dist_sign = np.sign((p[1]-self.pos[1])/(first_point[0]-second_point[0]))
 
-        x_lower_bound = min(first_point[0], second_point[0])
-        x_upper_bound = max(first_point[0], second_point[0])
-        y_lower_bound = min(first_point[1], second_point[1])
-        y_upper_bound = max(first_point[1], second_point[1])
-        if m != 0:
-            if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
-            elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
-            else: point = (x,y)
-
-        else:
-            if x_lower_bound == x_upper_bound:
-                if y > y_upper_bound: point = first_point if y_upper_bound in first_point else second_point
-                elif y < y_lower_bound: point = first_point if y_lower_bound in first_point else second_point
-                else: point = (x,y)
-            elif y_lower_bound == y_upper_bound:
-                if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
-                elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
-                else: point = (x,y)
-        car_point_vec = np.array(self.pos) - np.array(point)
-        car_point_angle = np.arctan2(car_point_vec[1], car_point_vec[0])
-        seg_vec = np.array(second_point) - np.array(first_point)
-        seg_angle = np.arctan2(seg_vec[1], seg_vec[0])
-        result_angle = car_point_angle - seg_angle
-        if result_angle < -np.pi: result_angle += np.pi
-        if result_angle >  np.pi: result_angle -= np.pi
-        distance = np.linalg.norm(car_point_vec)
-        result.append(distance if result_angle > 0 else -distance)
-        result.append(point)
+        result.append(dist_sign*np.linalg.norm(p-np.array(self.pos)))
+        result.append(p)
         return result
 
 

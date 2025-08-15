@@ -1,10 +1,22 @@
 import numpy as np
 import random
 from math import atan2
-l = 35
-array = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35, 36]
+def get_data_seg(first_point, second_point):
+        result = []
+        pos = [-6.04,13.64]
 
-for i, point in enumerate(array):   
-    print(point, array[(i+1)%len(array)])
+        t = ((first_point[0]-pos[0])*(first_point[0]-second_point[0])-(first_point[1]-pos[1])*(second_point[1]-first_point[1]))/((second_point[1]-first_point[1])**2+(second_point[0]-first_point[0])**2)
+        first_point = np.array(first_point)
+        second_point = np.array(second_point)
+        p = first_point+t(second_point - first_point)
+        if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
+            dist_sign = np.sign((p[0]-pos[0])/(second_point[1]-first_point[1]))
 
-     
+        else:
+            dist_sign = np.sign((p[1]-pos[1])/(first_point[0]-second_point[0]))
+
+        result.append(dist_sign*np.linalg.norm(p-np.array(pos)))
+        result.append(p)
+        return result
+
+print(get_data_seg((4.43,-3.34), (-50.076, 121.2)))

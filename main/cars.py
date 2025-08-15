@@ -22,19 +22,16 @@ class Car():
         self.color_id = color_id
         self.cl_points = cent_line
         self.turning_angle = 0
-        self.tire_direct = 0
         self.car_angle = np.pi/2
-        self.prev_car_angle = 0
         self.speed = 0
-        self.radius = 0
         self.game = game
-        self.turn_timer = 0
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
         self.simulation = simulation
-        
 
-        self.current_seg = ()
+        self.prev_cl_point = self.pos
+        self.target_cl_index = 1
+        self.distance = 0
 
 
     def get_data_seg(self, first_point, second_point):
@@ -51,13 +48,13 @@ class Car():
         x_upper_bound = max(first_point[0], second_point[0])
         y_lower_bound = min(first_point[1], second_point[1])
         y_upper_bound = max(first_point[1], second_point[1])
-        if m != 0:    
+        if m != 0:
             if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
             elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
             else: point = (x,y)
 
         else:
-            if x_lower_bound == x_upper_bound: 
+            if x_lower_bound == x_upper_bound:
                 if y > y_upper_bound: point = first_point if y_upper_bound in first_point else second_point
                 elif y < y_lower_bound: point = first_point if y_lower_bound in first_point else second_point
                 else: point = (x,y)
@@ -65,77 +62,34 @@ class Car():
                 if x > x_upper_bound: point = first_point if x_upper_bound in first_point else second_point
                 elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
                 else: point = (x,y)
-            
+
         result.append(np.linalg.norm(np.array(self.pos) - np.array(point)))
         result.append(point)
         return result
 
 
-
     def get_current_seg(self):
         c_d = float('inf')
         index = 0
-        for i, point in enumerate(self.cl_points):   
+        closest_seg_data = 0
+        for i, point in enumerate(self.cl_points):
             seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
-            d = seg_data[0]
-            if float(d) < float(c_d):
-                c_d = d
-                index = i
-      
-
-
-        for i in range(len(self.cl_points)):
-            d = np.linalg.norm(np.array(self.pos) - np.array(point))
-            if float(d) < float(c_d):
-                c_d = d
-                index = i
-
+            if float(seg_data[0]) < float(c_d):
+                c_d = seg_data[0]
+                index = (i+1)%len(self.cl_points)
+                closest_seg_data = seg_data
+        self.target_cl_index = index
+        return closest_seg_data
 
 
     def get_current_dist(self):
-        
-        
+
+        seg_data = self.get_current_seg()
+        self.distance += float(np.linalg.norm(np.array(self.prev_cl_point) - np.array(seg_data[1])))
+        self.prev_cl_point = seg_data[1]
 
 
-        closest_cl_point = self.cl_points[index]
-        c_cl_index = index
-
-        if index >= (len(self.cl_points)-1): index = -1
-        next_cl_point = self.cl_points[index+1]
-        prev_cl_point = self.cl_points[index-1]
-        d_next = self.get_distance_intersect(next_cl_point, closest_cl_point)
-        d_prev = self.get_distance_intersect(prev_cl_point, closest_cl_point)
-        if (d_next[0] and d_prev[0]) or (not d_next[0] and not d_prev[0]):
-            self.target_cl_index = index+1
-            self.test_index = (index, 3)
-            d = np.linalg.norm(np.array(self.pos) - np.array(closest_cl_point))
-            dist_trav_prev = np.linalg.norm(np.array(self.p_prev) - np.array(d_prev[2]))
-            dist_trav_next = np.linalg.norm(np.array(self.p_next) - np.array(d_next[2]))
-            self.distance += (dist_trav_next + dist_trav_prev)
-            self.p_prev = d_prev[2]
-            self.p_next = d_next[2]
-
-
-        elif not d_next[0] and d_prev[0]:
-            self.target_cl_index = c_cl_index
-            self.test_index = (index, c_cl_index, 2)
-            d = d_prev[1]
-            dist_trav_prev = np.linalg.norm(np.array(self.p_prev) - np.array(d_prev[2]))
-            self.distance += dist_trav_prev
-            self.p_prev = d_prev[2]
-            self.p_next = d_next[2]
-
-
-        elif d_next[0] and not d_prev[0]:
-            self.target_cl_index = index+1
-            self.test_index = (index, 1)
-            d = d_next[1]
-            dist_trav_next = np.linalg.norm(np.array(self.p_next) - np.array(d_next[2]))
-            self.distance += dist_trav_next
-            self.p_prev = d_prev[2]
-            self.p_next = d_next[2]
-
-        return d
+        return seg_data[0]
 
 
     def tick(self, time_elapsed):
@@ -202,10 +156,7 @@ class PlayerCar(Car):
         Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
         self.max_accel = 15/1000000
         self.max_deccel = 22/1000000
-        self.p_prev = start_pos
-        self.p_next = start_pos
-        self.target_cl_index = 1
-        self.distance = 0
+
 
 
     def control(self, event):
@@ -228,7 +179,7 @@ class PlayerCar(Car):
         super().tick(time_elapsed)
         r = self.get_current_dist()
 
-        print(r, self.distance)
+        print(round(r,2), round(self.distance,2), self.target_cl_index)
         self.movement_calc()
 
 

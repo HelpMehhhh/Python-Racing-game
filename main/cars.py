@@ -66,15 +66,21 @@ class Car():
                 elif x < x_lower_bound: point = first_point if x_lower_bound in first_point else second_point
                 else: point = (x,y)
             
-        result.append(np.linalg.norm(np.array(self.pos) - np.array([x, y])))
+        result.append(np.linalg.norm(np.array(self.pos) - np.array(point)))
         result.append(point)
         return result
 
 
 
     def get_current_seg(self):
+        c_d = float('inf')
+        index = 0
         for i, point in enumerate(self.cl_points):   
             seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
+            d = seg_data[0]
+            if float(d) < float(c_d):
+                c_d = d
+                index = i
       
 
 

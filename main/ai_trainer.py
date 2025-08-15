@@ -23,7 +23,9 @@ def eval_genomes(genomes, config):
                 car.tick(17, 0)
 
             else:
-                genomes[i][1].fitness += car.get_reward()
+                print(car.get_reward())
+                genomes[i][1].fitness = car.get_reward()
+
                 car.used_reward()
                 remain_cars -= 1
 
@@ -57,4 +59,4 @@ def run(config_path, generations):
 if __name__ == '__main__':
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path, 20)
+    run(config_path, None)

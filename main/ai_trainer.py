@@ -15,18 +15,16 @@ def eval_genomes(genomes, config):
         speed_index = r.randrange(0, 7)
         cars.append(AiCar(0, 0, [0,0], 1, accel_values[speed_index], deccel_values[speed_index], g, config, cent_line))
 
-    remain_cars = len(cars)
-    while remain_cars > 0:
-
+    have_live = True
+    while have_live:
+        have_live = False
         for i, car in enumerate(cars):
-            if car.get_alive():
-                car.tick(17, 0)
+            if not car.get_alive(): continue
+            car.tick(17, 0)
+            have_live = True
 
-            else:
-                #print(car.get_reward())
-                genomes[i][1].fitness = car.get_reward()
-
-                remain_cars -= 1
+    for i, car in enumerate(cars):
+        genomes[i][1].fitness = car.get_reward()
 
 
 

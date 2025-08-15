@@ -219,7 +219,7 @@ class AiCar(Car):
 
     def get_data(self, d):
         #returns should be floats, function insides should be handled with numpy
-        data = [float(d)]
+        data = [self.turning_angle, float(d)]
         origin_point = np.array(self.pos)
         origin_angle = self.car_angle
         target_point = np.array(self.cl_points[(self.target_cl_index)])

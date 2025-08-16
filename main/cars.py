@@ -209,12 +209,6 @@ class AiCar(Car):
 
     def get_alive(self): return self.state
 
-    def get_config(self): return self.config
-
-    def get_genome(self): return self.genome
-
-
-
     def get_reward(self):
         if self.distance < self.SpeedRewardThreshold: return self.distance
         return float(self.distance*(1+(self.distance-self.SpeedRewardThreshold)/self.time))

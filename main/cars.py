@@ -31,9 +31,10 @@ class Car():
         self.radius = 0
 
         self.time = 0
-        self.prev_cl_point = self.pos
         self.target_cl_index = 1
+        self.distance_to_seg = 0
         self.distance = 0
+        self.point = self.pos
 
 
 
@@ -46,8 +47,8 @@ class Car():
 
     def get_current_dist(self):
         seg_data = self.get_current_seg()
-        self.distance += float(np.linalg.norm(np.array(self.prev_cl_point) - np.array(seg_data[1])))
-        self.prev_cl_point = seg_data[1]
+        self.distance = self.distance_to_seg + float(np.linalg.norm(np.array(seg_data[1]) - np.array(self.cl_points[self.target_cl_index-1])))
+        self.point = seg_data[1]
         return seg_data[0]
 
 
@@ -77,6 +78,7 @@ class Car():
         cur_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index-1], self.cl_points[self.target_cl_index])
         nxt_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index  ], self.cl_points[next_target])
         if abs(float(cur_seg_data[0])) < abs(float(nxt_seg_data[0])): return cur_seg_data
+        self.distance_to_seg += float(np.linalg.norm(np.array(self.cl_points[self.target_cl_index]) - np.array(self.cl_points[self.target_cl_index-1])))
         self.target_cl_index = next_target
         return nxt_seg_data
 
@@ -171,7 +173,7 @@ class PlayerCar(Car):
         super().draw()
         self.screen.blit(self.car, self.car_rect)
         pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.prev_cl_point), 6)
+        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 
 

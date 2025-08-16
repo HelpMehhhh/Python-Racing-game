@@ -39,6 +39,7 @@ class Car():
 
 
 
+
     def tick(self, time_elapsed):
         self.time_elapsed = time_elapsed
         if not self.simulation: self.draw()
@@ -163,7 +164,7 @@ class PlayerCar(Car):
         self.movement_calc()
         self.time += time_elapsed/1000
         self.get_current_dist()
-        print(self.distance, self.time)
+        print(self.distance)
 
 
 
@@ -210,23 +211,23 @@ class AiCar(Car):
     def get_alive(self): return self.state
 
     def get_reward(self):
-        if self.distance < self.SpeedRewardThreshold: return self.distance
-        return float(self.distance*(1+(self.distance-self.SpeedRewardThreshold)/self.time))
+        #if self.distance < self.SpeedRewardThreshold: return self.distance
+        #return float(self.distance*(1+(self.distance-self.SpeedRewardThreshold)/self.time))
 
+        return (self.distance**2/(self.time+1))
 
 
     def get_data(self, d):
         #returns should be floats, function insides should be handled with numpy
         data = [self.turning_angle, self.speed, self.radius, float(d)]
         origin_point = np.array(self.pos)
-        origin_angle = self.car_angle
         target_point = np.array(self.cl_points[(self.target_cl_index)])
         prev_point = np.array(self.cl_points[(self.target_cl_index-1)])
         origin_target_vec = target_point - origin_point
         data.append(float(np.linalg.norm(origin_target_vec)))
         prev_target_vec = target_point - prev_point
         target_angle = np.arctan2(prev_target_vec[1], prev_target_vec[0])
-        data.append(float(target_angle - origin_angle))
+        data.append(float(target_angle - self.car_angle))
         prev_angle = target_angle
         prev_point = target_point
         for i in range(1, 5):
@@ -244,12 +245,14 @@ class AiCar(Car):
     def brain_calc(self):
         d = self.get_current_dist()
         if abs(d) >= 7:
-            if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time, d)
+            #if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time, d)
             self.state = 0
-        if self.time > 2 and (self.distance/self.time < 5):
-            if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time)
-            self.state = 0
-        if self.time > 500: self.state = 0
+            self.time *= 2
+        #if self.time > 2 and (self.distance/self.time < 5):
+            #if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time)
+            #self.state = 0
+        if self.distance > 2720: self.state = 0
+
         output = self.n_net.activate(self.get_data(d))
         if output[0] <= -1/3: self.steerstate = self.SteerState.left
 
@@ -272,6 +275,7 @@ class AiCar(Car):
         self.car = pg.transform.rotate(self.car, float(np.degrees(self.car_angle))-float(np.degrees(self.rotation)))
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
-
+        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
+        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 

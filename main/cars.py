@@ -182,18 +182,12 @@ class AiCar(Car):
 
 
     def get_current_seg(self):
-        c_d = float('inf')
-        index = 0
-        closest_seg_data = 0
-        for i, point in enumerate(self.cl_points):
-            seg_data = self.get_data_seg(point, self.cl_points[(i+1)%len(self.cl_points)])
-            if abs(float(seg_data[0])) < abs(float(c_d)):
-                c_d = seg_data[0]
-                index = (i+1)%len(self.cl_points)
-                closest_seg_data = seg_data
-
-        self.target_cl_index = index
-        return closest_seg_data
+        next_target = (self.target_cl_index+1)%len(self.cl_points)
+        cur_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index-1], self.cl_points[self.target_cl_index])
+        nxt_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index  ], self.cl_points[next_target])
+        if abs(float(cur_seg_data[0])) < abs(float(nxt_seg_data[0])): return cur_seg_data
+        self.target_cl_index = next_target
+        return nxt_seg_data
 
 
 

@@ -30,6 +30,7 @@ class Car():
         self.simulation = simulation
         self.radius = 0
 
+        self.time = 0
         self.prev_cl_point = self.pos
         self.target_cl_index = 1
         self.distance = 0
@@ -158,7 +159,9 @@ class PlayerCar(Car):
     def tick(self, time_elapsed):
         super().tick(time_elapsed)
         self.movement_calc()
+        self.time += time_elapsed/1000
         self.get_current_dist()
+        print(self.distance, self.time)
 
 
 
@@ -244,11 +247,12 @@ class AiCar(Car):
     def brain_calc(self):
         d = self.get_current_dist()
         if abs(d) >= 7:
-            if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time, abs(d))
+            if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time, d)
             self.state = 0
         if self.time > 2 and (self.distance/self.time < 5):
             if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time)
             self.state = 0
+        if self.time > 500: self.state = 0
         output = self.n_net.activate(self.get_data(d))
         if output[0] <= -1/3: self.steerstate = self.SteerState.left
 

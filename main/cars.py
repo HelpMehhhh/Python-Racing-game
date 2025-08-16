@@ -30,11 +30,54 @@ class Car():
         self.simulation = simulation
         self.radius = 0
 
+        self.prev_cl_point = self.pos
+        self.target_cl_index = 1
+        self.distance = 0
+
+
 
 
     def tick(self, time_elapsed):
         self.time_elapsed = time_elapsed
         if not self.simulation: self.draw()
+
+
+
+    def get_current_dist(self):
+        seg_data = self.get_current_seg()
+        self.distance += float(np.linalg.norm(np.array(self.prev_cl_point) - np.array(seg_data[1])))
+        self.prev_cl_point = seg_data[1]
+        return seg_data[0]
+
+
+
+    def get_data_seg(self, first_point, second_point):
+        result = []
+        t = ((first_point[0]-self.pos[0])*(first_point[0]-second_point[0])-(first_point[1]-self.pos[1])*(second_point[1]-first_point[1]))/((second_point[1]-first_point[1])**2+(second_point[0]-first_point[0])**2)
+        first_point = np.array(first_point)
+        second_point = np.array(second_point)
+        if t < 0: p = first_point
+        elif t > 1: p = second_point
+        else: p = first_point+t*(second_point - first_point)
+        if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
+            dist_sign = np.sign((p[0]-self.pos[0])/(second_point[1]-first_point[1]))
+
+        else:
+            dist_sign = np.sign((p[1]-self.pos[1])/(first_point[0]-second_point[0]))
+        if dist_sign == 0: dist_sign = 1
+        result.append(dist_sign*np.linalg.norm(p-np.array(self.pos)))
+        result.append(p)
+        return result
+
+
+
+    def get_current_seg(self):
+        next_target = (self.target_cl_index+1)%len(self.cl_points)
+        cur_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index-1], self.cl_points[self.target_cl_index])
+        nxt_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index  ], self.cl_points[next_target])
+        if abs(float(cur_seg_data[0])) < abs(float(nxt_seg_data[0])): return cur_seg_data
+        self.target_cl_index = next_target
+        return nxt_seg_data
 
 
 
@@ -115,13 +158,17 @@ class PlayerCar(Car):
     def tick(self, time_elapsed):
         super().tick(time_elapsed)
         self.movement_calc()
+        self.get_current_dist()
+
+
 
 
 
     def draw(self):
         super().draw()
         self.screen.blit(self.car, self.car_rect)
-
+        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
+        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.prev_cl_point), 6)
 
 
 
@@ -143,9 +190,6 @@ class AiCar(Car):
         self.config = config
         self.n_net = nn.FeedForwardNetwork.create(self.genome, self.config)
 
-        self.prev_cl_point = self.pos
-        self.target_cl_index = 1
-        self.distance = 0
 
 
 
@@ -165,51 +209,9 @@ class AiCar(Car):
 
 
 
-
-
     def get_reward(self):
         if self.distance < self.SpeedRewardThreshold: return self.distance
         return float(self.distance*(1+(self.distance-self.SpeedRewardThreshold)/self.time))
-
-
-
-    def get_current_dist(self):
-        seg_data = self.get_current_seg()
-        self.distance += float(np.linalg.norm(np.array(self.prev_cl_point) - np.array(seg_data[1])))
-        self.prev_cl_point = seg_data[1]
-        return seg_data[0]
-
-
-
-    def get_current_seg(self):
-        next_target = (self.target_cl_index+1)%len(self.cl_points)
-        cur_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index-1], self.cl_points[self.target_cl_index])
-        nxt_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index  ], self.cl_points[next_target])
-        if abs(float(cur_seg_data[0])) < abs(float(nxt_seg_data[0])): return cur_seg_data
-        self.target_cl_index = next_target
-        return nxt_seg_data
-
-
-
-    def get_data_seg(self, first_point, second_point):
-        result = []
-
-
-        t = ((first_point[0]-self.pos[0])*(first_point[0]-second_point[0])-(first_point[1]-self.pos[1])*(second_point[1]-first_point[1]))/((second_point[1]-first_point[1])**2+(second_point[0]-first_point[0])**2)
-        first_point = np.array(first_point)
-        second_point = np.array(second_point)
-        if t < 0: p = first_point
-        elif t > 1: p = second_point
-        else: p = first_point+t*(second_point - first_point)
-        if abs(first_point[1]-second_point[1]) > abs(first_point[0]-second_point[0]):
-            dist_sign = np.sign((p[0]-self.pos[0])/(second_point[1]-first_point[1]))
-
-        else:
-            dist_sign = np.sign((p[1]-self.pos[1])/(first_point[0]-second_point[0]))
-
-        result.append(dist_sign*np.linalg.norm(p-np.array(self.pos)))
-        result.append(p)
-        return result
 
 
 

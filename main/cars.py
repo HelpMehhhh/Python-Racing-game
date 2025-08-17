@@ -2,7 +2,6 @@ from enum import IntEnum
 import pygame as pg
 import numpy as np
 import os
-from neat import nn
 
 class Car():
     class SteerState(IntEnum):
@@ -187,18 +186,14 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
-    DistanceTrainingLimit = 1310
 
-    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):
+    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, cl_points, simulation=1):
         Car.__init__(self, screen, game, start_pos, cl_points, color_id, simulation)
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
         self.state = 1 #1 for alive, 0 for dead
         self.distance = 0
         self.time = 0
-        self.genome = genome
-        self.config = config
-        self.n_net = nn.FeedForwardNetwork.create(self.genome, self.config)
 
 
 
@@ -247,21 +242,6 @@ class AiCar(Car):
     def brain_calc(self):
         d = self.get_current_dist()
         reason = None
-
-        if self.time > 10:
-            reason = "Finished"
-            self.state = 0
-
-        if reason is not None and self.distance > 5:
-            print(reason, self.distance, self.time, self.speed, d)
-
-
-        output = self.n_net.activate(self.get_data(d))
-        steer_choice = output[:3].index(max(output[:3]))
-        speed_choice = output[3:].index(max(output[3:]))
-
-        self.steerstate = [self.SteerState.left, self.SteerState.center, self.SteerState.right][steer_choice]
-        self.speedstate = [self.SpeedState.accel, self.SpeedState.const, self.SpeedState.deccel][speed_choice]
 
         self.time += self.time_elapsed/1000
         #print(self.speed*3600, self.distance)

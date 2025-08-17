@@ -28,7 +28,7 @@ class Car():
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
         self.simulation = simulation
-        self.radius = 10000
+        self.radius = 1000
 
         self.time = 0
         self.target_cl_index = 1
@@ -115,7 +115,7 @@ class Car():
         if self.turning_angle != 0:
             self.radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
         else:
-            self.radius = 10000
+            self.radius = 1000
         max_speed = np.sqrt(self.radius*50)/1000
         if self.speed > max_speed:
             self.radius = ((self.speed*1000)**2)/50
@@ -167,7 +167,7 @@ class PlayerCar(Car):
         self.movement_calc()
         self.time += time_elapsed/1000
         self.get_current_dist()
-        print(self.distance)
+        print(self.speed)
 
 
 
@@ -221,23 +221,23 @@ class AiCar(Car):
 
     def get_data(self, d):
         #returns should be floats, function insides should be handled with numpy
-        data = [self.turning_angle, self.speed, self.radius, float(d)]
+        data = [self.turning_angle*6/np.pi, self.speed/0.1, self.radius/1000, float(d/7)]
         origin_point = np.array(self.pos)
         target_point = np.array(self.cl_points[(self.target_cl_index)])
         prev_point = np.array(self.cl_points[(self.target_cl_index-1)])
         origin_target_vec = target_point - origin_point
-        data.append(float(np.linalg.norm(origin_target_vec)))
+        data.append(float(np.linalg.norm(origin_target_vec)/7))
         prev_target_vec = target_point - prev_point
         target_angle = np.arctan2(prev_target_vec[1], prev_target_vec[0])
-        data.append(float(target_angle - self.car_angle))
+        data.append(float((target_angle - self.car_angle)/np.pi))
         prev_angle = target_angle
         prev_point = target_point
         for i in range(1, 3):
             next_point = np.array(self.cl_points[(self.target_cl_index+i)%len(self.cl_points)])
             cur_vector = next_point - prev_point
             cur_angle = np.arctan2(cur_vector[1], cur_vector[0])
-            data.append(float(np.linalg.norm(cur_vector)))
-            data.append(float((cur_angle - prev_angle)))
+            data.append(float(np.linalg.norm(cur_vector)/7))
+            data.append(float((cur_angle - prev_angle)/np.pi))
             prev_point = next_point
             prev_angle = cur_angle
 
@@ -257,17 +257,11 @@ class AiCar(Car):
 
 
         output = self.n_net.activate(self.get_data(d))
-        if output[0] <= -1/3: self.steerstate = self.SteerState.left
+        steer_choice = output[:3].index(max(output[:3]))
+        speed_choice = output[3:].index(max(output[3:]))
 
-        elif output[0] >= 1/3: self.steerstate = self.SteerState.right
-
-        else: self.steerstate = self.SteerState.center
-
-        if output[1] <= -1/3: self.speedstate = self.SpeedState.deccel
-
-        elif output[1] >= 1/3: self.speedstate = self.SpeedState.accel
-
-        else: self.speedstate = self.SpeedState.const
+        self.steerstate = [self.SteerState.left, self.SteerState.center, self.SteerState.right][steer_choice]
+        self.speedstate = [self.SpeedState.accel, self.SpeedState.const, self.SpeedState.deccel][speed_choice]
 
         self.time += self.time_elapsed/1000
         #print(self.speed*3600, self.distance)

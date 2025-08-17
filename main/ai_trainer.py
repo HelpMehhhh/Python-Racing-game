@@ -6,6 +6,7 @@ import pickle
 import cProfile
 import pstats
 from neat.checkpoint import Checkpointer
+import visualize
 
 def eval_genomes(genomes, config):
     with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
@@ -15,8 +16,8 @@ def eval_genomes(genomes, config):
     deccel_values = [14, 17, 18, 19, 20, 21, 22]
     for g_id, g in genomes:
         g.fitness = 0
-        speed_index = r.randrange(0, 7)
-        cars.append(AiCar(0, 0, [0,1], 1, accel_values[speed_index], deccel_values[speed_index], g, config, cent_line))
+        #speed_index = r.randrange(0, 7)
+        cars.append(AiCar(0, 0, [0,1], 1, accel_values[5], deccel_values[5], g, config, cent_line))
 
     have_live = True
     while have_live:
@@ -44,17 +45,20 @@ def run(config_path, generations, extract):
     checkpoint_dir = "models"
     if not extract: pop = neat.Population(config)
     else:
-        pop = Checkpointer.restore_checkpoint(os.path.join(checkpoint_dir, "neat-checkpoint-894"))
-        #pop = neat.Population(config, initial_state=pop.population)
+        pop = Checkpointer.restore_checkpoint(os.path.join(checkpoint_dir, "neat-checkpoint-constacceldecell-165"))
+        pop = neat.Population(config, initial_state=(pop.population, pop.species, pop.generation))
     pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
-    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-")))
+    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-constacceldecell-")))
+
     pop.run(eval_genomes, generations)
     final_genomes = pop.population
     for genome_id, genome in final_genomes.items(): print(f"Genome ID: {genome_id}, Fitness: {genome.fitness}")
     winner_genome = stats.best_genome()
+    neat.visualise.draw_net(winner_genome, view=True)
+
     with open(os.path.join(local_dir, 'winner.pickle'), 'wb') as f: pickle.dump(winner_genome, f)
 
 if __name__ == '__main__':

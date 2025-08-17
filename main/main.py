@@ -119,9 +119,10 @@ class Game():
         speed_index = randrange(0, 7)
 
         #cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)
-        self.player = cars.PlayerCar(self.screen, self, [0, 0.5], self.cent_line)
+        self.player = cars.PlayerCar(self.screen, self, [0, 0], self.cent_line)
         self.rotation = self.player.car_angle
-        self.cars = [cars.AiCar(self.screen, self, [0, 1], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)]
+        self.cars = []
+        #self.cars = [cars.AiCar(self.screen, self, [0, 0], 2, accel_values[0], deccel_values[0], g, conf, self.cent_line, 0)]
         self.screen_center = self.player.pos
         self.rescale()
 

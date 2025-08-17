@@ -18,7 +18,7 @@ class Car():
     #color id refers to how the car image files are named 1 through 6
     def __init__(self, screen, game, start_pos, cent_line, color_id, simulation):
         self.screen = screen
-        self.pos = start_pos
+        self.pos = [cent_line[0][0]+start_pos[0], cent_line[0][1]+start_pos[1]]
         self.color_id = color_id
         self.cl_points = cent_line
         self.turning_angle = 0
@@ -28,7 +28,7 @@ class Car():
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
         self.simulation = simulation
-        self.radius = 0
+        self.radius = 10000
 
         self.time = 0
         self.target_cl_index = 1
@@ -48,7 +48,9 @@ class Car():
 
     def get_current_dist(self):
         seg_data = self.get_current_seg()
-        self.distance = self.distance_to_seg + float(np.linalg.norm(np.array(seg_data[1]) - np.array(self.cl_points[self.target_cl_index-1])))
+        v = np.array(seg_data[1]) - np.array(self.cl_points[self.target_cl_index-1])
+        if abs(seg_data[0]) > 7: self.distance = self.distance_to_seg
+        else: self.distance = self.distance_to_seg + float(np.linalg.norm(v))
         self.point = seg_data[1]
         return seg_data[0]
 
@@ -79,6 +81,7 @@ class Car():
         cur_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index-1], self.cl_points[self.target_cl_index])
         nxt_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index  ], self.cl_points[next_target])
         if abs(float(cur_seg_data[0])) < abs(float(nxt_seg_data[0])): return cur_seg_data
+        if abs(cur_seg_data[0]) > 7: return cur_seg_data
         self.distance_to_seg += float(np.linalg.norm(np.array(self.cl_points[self.target_cl_index]) - np.array(self.cl_points[self.target_cl_index-1])))
         self.target_cl_index = next_target
         return nxt_seg_data
@@ -111,13 +114,13 @@ class Car():
 
         if self.turning_angle != 0:
             self.radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
-
-        else: self.radius = 0
+        else:
+            self.radius = 10000
         max_speed = np.sqrt(self.radius*50)/1000
         if self.speed > max_speed:
             self.radius = ((self.speed*1000)**2)/50
 
-        d_angle = np.sign(self.turning_angle)*((self.speed/self.radius)*self.time_elapsed) if self.radius != 0 else 0
+        d_angle = np.sign(self.turning_angle)*((self.speed/self.radius)*self.time_elapsed)
         self.car_angle += float(d_angle)
         self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle))
         self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle))
@@ -184,7 +187,7 @@ class PlayerCar(Car):
 
 
 class AiCar(Car):
-    SpeedRewardThreshold = 500
+    DistanceTrainingLimit = 1310
 
     def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):
         Car.__init__(self, screen, game, start_pos, cl_points, color_id, simulation)
@@ -200,6 +203,7 @@ class AiCar(Car):
 
 
 
+
     def tick(self, time_elapsed, rotation):
         self.rotation = rotation
         super().tick(time_elapsed)
@@ -211,10 +215,8 @@ class AiCar(Car):
     def get_alive(self): return self.state
 
     def get_reward(self):
-        #if self.distance < self.SpeedRewardThreshold: return self.distance
-        #return float(self.distance*(1+(self.distance-self.SpeedRewardThreshold)/self.time))
+        return self.distance
 
-        return (self.distance**2/(self.time+1))
 
 
     def get_data(self, d):
@@ -230,7 +232,7 @@ class AiCar(Car):
         data.append(float(target_angle - self.car_angle))
         prev_angle = target_angle
         prev_point = target_point
-        for i in range(1, 5):
+        for i in range(1, 3):
             next_point = np.array(self.cl_points[(self.target_cl_index+i)%len(self.cl_points)])
             cur_vector = next_point - prev_point
             cur_angle = np.arctan2(cur_vector[1], cur_vector[0])
@@ -244,14 +246,15 @@ class AiCar(Car):
 
     def brain_calc(self):
         d = self.get_current_dist()
-        if abs(d) >= 7:
-            #if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time, d)
+        reason = None
+
+        if self.time > 10:
+            reason = "Finished"
             self.state = 0
-            self.time *= 2
-        #if self.time > 2 and (self.distance/self.time < 5):
-            #if self.time > 2.1 and self.distance > 120: print(self.distance, self.time, self.distance/self.time)
-            #self.state = 0
-        if self.distance > 2720: self.state = 0
+
+        if reason is not None and self.distance > 5:
+            print(reason, self.distance, self.time, self.speed, d)
+
 
         output = self.n_net.activate(self.get_data(d))
         if output[0] <= -1/3: self.steerstate = self.SteerState.left

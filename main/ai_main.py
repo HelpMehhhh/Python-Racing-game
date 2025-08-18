@@ -26,10 +26,6 @@ class Agent:
         self.model = Linear_QNet(12, 256, 6)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
-    def get_state(self, game):
-
-
-        return np.array(state, dtype=np.float64)
 
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
@@ -51,17 +47,22 @@ class Agent:
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
         self.epsilon = 80 - self.n_games
-        final_move = [0,0,0]
-        if random.randint(0, 200) < self.epsilon:
-            move = random.randint(0, 2)
-            final_move[move] = 1
+        final_outputs = [0,0,0,0,0,0]
+        if r.randint(0, 200) < self.epsilon:
+            steer = r.randint(0, 2)
+            speed = r.randint(3, 5)
+            final_outputs[steer] = 1
+            final_outputs[speed] = 1
+            
+
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
             move = torch.argmax(prediction).item()
-            final_move[move] = 1
+            final_outputs[steer] = 1
+            final_outputs[speed] = 1
 
-        return final_move
+        return final_outputs
 
 
 def train():
@@ -79,8 +80,8 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, score = ai_car.play_step(final_move)
-        state_new = agent.get_state(ai_car)
+        reward, done, score = ai_car.tick(final_move)
+        state_new = ai_car.get_data()
 
         # train short memory
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
@@ -90,7 +91,7 @@ def train():
 
         if done:
             # train long memory, plot result
-            game.reset()
+            ai_car.reset()
             agent.n_games += 1
             agent.train_long_memory()
 

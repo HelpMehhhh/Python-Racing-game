@@ -163,7 +163,6 @@ class AiCar(Car):
         self.rotation = rotation
         super().tick(time_elapsed)
         return self.brain_calc(action)
-        return self.distance
 
     def get_data(self):
         #returns should be floats, function insides should be handled with numpy

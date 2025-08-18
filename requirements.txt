@@ -3,3 +3,6 @@ numpy
 sympy
 numba
 scipy
+torch torchvision --index-url https://download.pytorch.org/whl/cu129
+matplotlib
+ipython

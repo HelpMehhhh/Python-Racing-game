@@ -4,7 +4,6 @@ from button import Button
 import sys
 import numpy as np
 from pygame import gfxdraw
-import sympy as sym
 from numba import jit
 import pickle
 import cars

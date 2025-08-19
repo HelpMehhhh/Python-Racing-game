@@ -14,7 +14,6 @@ class Car():
         const = 0
         deccel = -1
 
-
     #color id refers to how the car image files are named 1 through 6
     def __init__(self, screen, game, start_pos, cent_line, color_id, simulation):
         self.screen = screen
@@ -25,10 +24,7 @@ class Car():
         self.car_angle = np.pi/2
         self.speed = 0
         self.game = game
-        self.steerstate = self.SteerState.center
-        self.speedstate = self.SpeedState.const
         self.simulation = simulation
-        self.radius = 1000
 
         self.time = 0
         self.target_cl_index = 1
@@ -36,15 +32,9 @@ class Car():
         self.distance = 0
         self.point = self.pos
 
-
-
-
-
     def tick(self, time_elapsed):
-        self.time_elapsed = time_elapsed
+        self.time += time_elapsed/1000
         if not self.simulation: self.draw()
-
-
 
     def get_current_dist(self):
         seg_data = self.get_current_seg()
@@ -53,8 +43,6 @@ class Car():
         else: self.distance = self.distance_to_seg + float(np.linalg.norm(v))
         self.point = seg_data[1]
         return seg_data[0]
-
-
 
     def get_data_seg(self, first_point, second_point):
         result = []
@@ -74,8 +62,6 @@ class Car():
         result.append(p)
         return result
 
-
-
     def get_current_seg(self):
         next_target = (self.target_cl_index+1)%len(self.cl_points)
         cur_seg_data = self.get_data_seg(self.cl_points[self.target_cl_index-1], self.cl_points[self.target_cl_index])
@@ -86,10 +72,37 @@ class Car():
         self.target_cl_index = next_target
         return nxt_seg_data
 
+    def movement_calc(self, time_elapsed):
+        self.pos[0] += float(time_elapsed*self.speed*np.cos(self.car_angle))
+        self.pos[1] += float(time_elapsed*self.speed*np.sin(self.car_angle))
+        if self.car_angle > np.pi: self.car_angle -= 2*np.pi
+        if self.car_angle < -np.pi: self.car_angle += 2*np.pi
 
+    def draw(self):
+        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
+        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
 
-    def movement_calc(self):
-        chg = (0.00012566*abs(self.turning_angle) + 0.000698131)*self.time_elapsed
+class PlayerCar(Car):
+    def __init__(self, screen, game, start_pos, cent_line, color_id=1, simulation=0):
+        Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
+        self.max_accel = 15/1000000
+        self.max_deccel = 22/1000000
+        self.steerstate = self.SteerState.center
+        self.speedstate = self.SpeedState.const
+
+    def control(self, event):
+        if (event.type == pg.KEYUP):
+            if (event.key in (pg.K_d, pg.K_a)): self.steerstate = self.SteerState.center
+            if (event.key in (pg.K_UP, pg.K_DOWN)): self.speedstate = self.SpeedState.const
+
+        elif (event.type == pg.KEYDOWN):
+            if (event.key == pg.K_d): self.steerstate = self.SteerState.right
+            elif (event.key == pg.K_a): self.steerstate = self.SteerState.left
+            if (event.key == pg.K_UP): self.speedstate = self.SpeedState.accel
+            elif (event.key == pg.K_DOWN): self.speedstate = self.SpeedState.deccel
+
+    def steering(self, time_elapsed):
+        chg = (0.00012566*abs(self.turning_angle) + 0.000698131)*time_elapsed
         #if self.speed > self.tt: chg *= self.tt/self.speed
         if self.steerstate == self.SteerState.center:
             chg *=3
@@ -106,72 +119,28 @@ class Car():
 
         if self.speedstate != self.SpeedState.const:
             if self.speedstate == self.SpeedState.deccel:
-                self.speed -= self.time_elapsed*self.max_deccel
+                self.speed -= time_elapsed*self.max_deccel
                 if self.speed < 0: self.speed = 0
 
             elif self.speedstate == self.SpeedState.accel:
-                self.speed += self.time_elapsed*self.max_accel
+                self.speed += time_elapsed*self.max_accel
 
         if self.turning_angle != 0:
-            self.radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
+            radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
         else:
-            self.radius = 1000
-        max_speed = np.sqrt(self.radius*50)/1000
+            radius = 1000
+        max_speed = np.sqrt(radius*50)/1000
         if self.speed > max_speed:
-            self.radius = ((self.speed*1000)**2)/50
+            radius = ((self.speed*1000)**2)/50
 
-        d_angle = np.sign(self.turning_angle)*((self.speed/self.radius)*self.time_elapsed)
+        d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed)
         self.car_angle += float(d_angle)
-        self.pos[0] += float(self.time_elapsed*self.speed*np.cos(self.car_angle))
-        self.pos[1] += float(self.time_elapsed*self.speed*np.sin(self.car_angle))
-        if self.car_angle > np.pi: self.car_angle -= 2*np.pi
-        if self.car_angle < -np.pi: self.car_angle += 2*np.pi
-
-
-
-    def draw(self):
-        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
-
-
-
-
-
-
-
-
-
-class PlayerCar(Car):
-    def __init__(self, screen, game, start_pos, cent_line, color_id=1, simulation=0):
-        Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
-        self.max_accel = 15/1000000
-        self.max_deccel = 22/1000000
-
-
-
-    def control(self, event):
-        if (event.type == pg.KEYUP):
-            if (event.key in (pg.K_d, pg.K_a)): self.steerstate = self.SteerState.center
-            if (event.key in (pg.K_UP, pg.K_DOWN)): self.speedstate = self.SpeedState.const
-
-        elif (event.type == pg.KEYDOWN):
-            if (event.key == pg.K_d): self.steerstate = self.SteerState.right
-            elif (event.key == pg.K_a): self.steerstate = self.SteerState.left
-            if (event.key == pg.K_UP): self.speedstate = self.SpeedState.accel
-            elif (event.key == pg.K_DOWN): self.speedstate = self.SpeedState.deccel
-
-
 
     def tick(self, time_elapsed):
         super().tick(time_elapsed)
-        self.movement_calc()
-        self.time += time_elapsed/1000
+        self.steering(time_elapsed)
+        self.movement_calc(time_elapsed)
         self.get_current_dist()
-        print(self.speed)
-
-
-
-
 
     def draw(self):
         super().draw()
@@ -179,12 +148,6 @@ class PlayerCar(Car):
         self.screen.blit(self.car, self.car_rect)
         pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
         pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
-
-
-
-
-
-
 
 class AiCar(Car):
     DistanceTrainingLimit = 1310
@@ -199,29 +162,21 @@ class AiCar(Car):
         self.genome = genome
         self.config = config
         self.n_net = nn.FeedForwardNetwork.create(self.genome, self.config)
-
-
-
-
+        self.d = 0
 
     def tick(self, time_elapsed, rotation):
         self.rotation = rotation
         super().tick(time_elapsed)
-        self.brain_calc()
-        self.movement_calc()
-
-
+        self.brain_calc(time_elapsed)
+        self.movement_calc(time_elapsed)
 
     def get_alive(self): return self.state
 
     def get_reward(self):
-        return self.distance
-
-
+        return self.distance - abs(self.d)
 
     def get_data(self, d):
-        #returns should be floats, function insides should be handled with numpy
-        data = [self.turning_angle*6/np.pi, self.speed/0.1, self.radius/1000, float(d/7)]
+        data = [self.speed/0.1, float(d/7)]
         origin_point = np.array(self.pos)
         target_point = np.array(self.cl_points[(self.target_cl_index)])
         prev_point = np.array(self.cl_points[(self.target_cl_index-1)])
@@ -243,9 +198,8 @@ class AiCar(Car):
 
         return data
 
-
-    def brain_calc(self):
-        d = self.get_current_dist()
+    def brain_calc(self, time_elapsed):
+        self.d = self.get_current_dist()
         reason = None
 
         if self.time > 10:
@@ -253,19 +207,23 @@ class AiCar(Car):
             self.state = 0
 
         if reason is not None and self.distance > 5:
-            print(reason, self.distance, self.time, self.speed, d)
+            print(reason, self.distance, self.time, self.speed, self.d)
 
 
-        output = self.n_net.activate(self.get_data(d))
-        steer_choice = output[:3].index(max(output[:3]))
-        speed_choice = output[3:].index(max(output[3:]))
+        output = self.n_net.activate(self.get_data(self.d))
 
-        self.steerstate = [self.SteerState.left, self.SteerState.center, self.SteerState.right][steer_choice]
-        self.speedstate = [self.SpeedState.accel, self.SpeedState.const, self.SpeedState.deccel][speed_choice]
+        steer = min(1, max(-1, output[0]))
+        accel = min(1, max(-1, output[1]))
 
-        self.time += self.time_elapsed/1000
+        accel *= self.max_deccel if accel < 0 else self.max_accel
+        self.speed += accel*time_elapsed
+        if self.speed < 0: self.speed = 0
+
+        radius = ((self.speed*1000)**2)/50
+
+        if radius > 0: self.car_angle += float(steer*self.speed/radius*time_elapsed)
+
         #print(self.speed*3600, self.distance)
-
 
     def draw(self):
         super().draw()
@@ -275,4 +233,4 @@ class AiCar(Car):
         pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
         pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
-
+# vim: set sw=4 ts=4 sts=4 et sta sr ai si cin cino=>1s(0u0W1s:

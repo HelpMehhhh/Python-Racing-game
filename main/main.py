@@ -9,15 +9,11 @@ from numba import jit
 import pickle
 import cars
 from random import randrange
+from pygame._sdl2 import Window
 
 pg.init()
 
 FRAME_RATE = 60
-
-
-
-
-
 
 class Mainloop():
     def __init__(self):
@@ -28,15 +24,15 @@ class Mainloop():
         pg.display.set_icon(icon)
         self.running = True
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
-        self.fullscreen = True
-        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-        self.scene = MainMenu(self.screen)
+        self.fullscreen = False
+        self.screen = pg.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pg.RESIZABLE)
+        Window.from_display_module().maximize()
+        #self.scene = MainMenu(self.screen)
+        self.scene = Game(self.screen)
         self.main_loop()
-
 
     def change_scene(self, event):
         if event == "PLAY": self.scene = Game(self.screen)
-
 
     def main_loop(self):
         self.scene.rescale()
@@ -64,11 +60,6 @@ class Mainloop():
 
                 elif event.type == pg.WINDOWRESIZED: self.scene.rescale()
 
-
-
-
-
-
 class MainMenu():
     def __init__(self, screen):
         self.screen = screen
@@ -76,13 +67,11 @@ class MainMenu():
         self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
-
     def tick(self, t):
         self.screen.blit(self.menu_bg, (0,0))
         self.play.update()
         self.quit.update()
         self.settings.update()
-
 
     def rescale(self):
         self.x, self.y = self.screen.get_size()
@@ -92,15 +81,9 @@ class MainMenu():
         self.settings.rescale()
         self.quit.rescale()
 
-
     def events(self, event):
         if self.play.update(event): return [1, "PLAY"]
         if self.quit.update(event): sys.exit()
-
-
-
-
-
 
 class Game():
     TRACK_WIDTH = 6
@@ -126,7 +109,6 @@ class Game():
         self.screen_center = self.player.pos
         self.rescale()
 
-
     def convert_passer(self, gamev, ofssc = 1):
         npgamev = np.array([*gamev], dtype=np.float64)
         screen_center = np.array([*self.screen_center], dtype=np.float64)
@@ -134,7 +116,6 @@ class Game():
         if ofssc: return (result[0], pg.display.Info().current_h - result[1])
 
         else: return result
-
 
     @staticmethod
     @jit
@@ -150,7 +131,6 @@ class Game():
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
             return result
 
-
     def tick(self, time_elapsed):
         self.create_matrix()
         self.screen.fill((78, 217, 65))
@@ -160,7 +140,6 @@ class Game():
         self.screen_center = self.player.pos
         self.rotation = self.player.car_angle
 
-
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
         rotate = np.array([[np.sin(self.rotation), (np.cos(self.rotation))], [-np.cos(self.rotation), np.sin(self.rotation)]], dtype=np.float64)
@@ -168,7 +147,6 @@ class Game():
         scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
-
 
     def background(self):
         cent_line_screen = []
@@ -182,11 +160,9 @@ class Game():
         pg.gfxdraw.filled_polygon(self.screen, pp_screen, (105,105,105))
         pg.draw.lines(self.screen, (255,255,255), True, cent_line_screen, 5)
 
-
     def rescale(self):
         self.create_matrix()
         self.background()
-
 
     def events(self, event):
         if event.type in (pg.KEYDOWN, pg.KEYUP):
@@ -196,10 +172,8 @@ class Game():
 
             self.player.control(event)
 
-
-
-
-
 if __name__ == "__main__":
     #cProfile.run("Mainloop()", sort="cumtime")
     Mainloop()
+
+# vim: set sw=4 ts=4 sts=4 et sta sr ai si cin cino=>1s(0u0W1s:

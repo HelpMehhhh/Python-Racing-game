@@ -6,7 +6,6 @@ import pickle
 import cProfile
 import pstats
 from neat.checkpoint import Checkpointer
-import visualize
 
 def eval_genomes(genomes, config):
     with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)

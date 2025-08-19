@@ -37,6 +37,8 @@ class Car():
         self.time = 0
         self.point = self.pos
         self.d_track = self.get_current_dist()
+        self.score = self.distance
+                
 
     def tick(self, time_elapsed):
         self.time_elapsed = time_elapsed
@@ -198,17 +200,18 @@ class AiCar(Car):
         self.speedstate = [self.SpeedState.accel, self.SpeedState.const, self.SpeedState.deccel][speed_choice]
         self.movement_calc()
 
-
+        
         reward = 0
         game_over = False
         self.d_track = self.get_current_dist()
         if abs(self.d_track) > 7 or ...:
             game_over = True
             reward = -10
-            return reward, game_over, score?
+            return reward, game_over, self.score
         else:
-            reward = int(round(self.distance**2/self.time, 0))
-        return reward, game_over, score?
+            reward = int(round(self.distance, 0))
+            self.score = self.distance
+        return reward, game_over, self.score
 
     def draw(self):
         super().draw()

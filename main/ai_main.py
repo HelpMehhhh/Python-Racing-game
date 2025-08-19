@@ -8,7 +8,6 @@ import numpy as np
 
 
 from collections import deque
-from main.ai_main import SnakeGameAI, Direction, Point
 from model import Linear_QNet, QTrainer
 from helper import plot
 
@@ -26,13 +25,12 @@ class Agent:
         self.model = Linear_QNet(12, 256, 6)
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
-
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done)) # popleft if MAX_MEMORY is reached
 
     def train_long_memory(self):
         if len(self.memory) > BATCH_SIZE:
-            mini_sample = random.sample(self.memory, BATCH_SIZE) # list of tuples
+            mini_sample = r.sample(self.memory, BATCH_SIZE) # list of tuples
         else:
             mini_sample = self.memory
 
@@ -53,14 +51,13 @@ class Agent:
             speed = r.randint(3, 5)
             final_outputs[steer] = 1
             final_outputs[speed] = 1
-            
-
+        
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
-            move = torch.argmax(prediction).item()
-            final_outputs[steer] = 1
-            final_outputs[speed] = 1
+            prediction.reshape(2,3)
+            final_outputs[torch.argmax(prediction[0]).item()] = 1
+            final_outputs[(torch.argmax(prediction[1]).item())+3] = 1
 
         return final_outputs
 
@@ -71,7 +68,8 @@ def train():
     total_score = 0
     record = 0
     agent = Agent()
-    ai_car = AiCar()
+    with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
+    ai_car = AiCar(0, 0, [0,0], 1, 14, 21, cent_line)
     while True:
         # get old state
         state_old = ai_car.get_data()
@@ -80,7 +78,7 @@ def train():
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, score = ai_car.tick(final_move)
+        reward, done, score = ai_car.tick(17, final_move, 0)
         state_new = ai_car.get_data()
 
         # train short memory

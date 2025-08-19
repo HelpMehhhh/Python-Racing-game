@@ -6,27 +6,41 @@ import pickle
 import numpy as np
 from numba import jit
 from pygame import gfxdraw
-
+from enum import Enum
+class Scene(Enum):
+        main_menu = 0
+        game = 1
 class Graphics():
-    def __init__(self):
+     
+    def __init__(self, car):
+        pg.init()
         self.SCREEN_WIDTH = pg.display.Info().current_w
         self.SCREEN_HEIGHT = pg.display.Info().current_h
-        self.clock = pg.time.Clock()
         icon = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/game_icon.png')
         pg.display.set_icon(icon)
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.fullscreen = True
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-        self.scene = MainMenu(self.screen)
-        self.scene.rescale()
+        self.scene = Scene.main_menu
+        self.car = car
+        self.scenes = [MainMenu(self.screen), GameGraphics(self.screen, self.car)]
+        self.scene_rescale()
 
-    def change_scene(self, event):
-        if event == "PLAY": self.scene = Game(self.screen)
+    def scene_tick(self): 
+        if self.scene == Scene.main_menu: self.scenes[self.scene].tick()
+        elif self.scene == Scene.game: self.scenes[self.scene].tick(self.car)
 
-    def graphics_loop(self):
-        self.scene.tick()
+    def scene_rescale(self): self.scenes[self.scene].rescale()  
+        
+    def scene_events(self): return self.scenes[self.scene].events()
+
+    def graphics_loop(self, car):
+        self.car = car
+        self.scene_tick()
         pg.display.flip()
         for event in pg.event.get():
+            event = self.scene_events()
+            if event: self.scene = event
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE: exit(0)
                 if event.key == pg.K_F11:
@@ -36,8 +50,8 @@ class Graphics():
                     else:
                         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
                         self.fullscreen = True
-            elif event.type == pg.QUIT: self.running = False
-            elif event.type == pg.WINDOWRESIZED: self.scene.rescale()
+            elif event.type == pg.QUIT: exit(0)
+            elif event.type == pg.WINDOWRESIZED: self.scene_rescale()
 
 
 class MainMenu():
@@ -47,7 +61,7 @@ class MainMenu():
         self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
-    def tick(self, t):
+    def tick(self):
         self.screen.blit(self.menu_bg, (0,0))
         self.play.update()
         self.quit.update()
@@ -62,32 +76,22 @@ class MainMenu():
         self.quit.rescale()
 
     def events(self, event):
-        if self.play.update(event): return [1, "PLAY"]
+        if self.play.update(event): return Scene.game
         if self.quit.update(event): exit(0)
 
 
-class Game():
+class GameGraphics():
     TRACK_WIDTH = 6
-    def __init__(self, screen):
+    def __init__(self, screen, car):
         self.screen = screen
         self.screen.fill((0,0,0))
         self.zoom = 0.1
         local_dir = os.path.dirname(__file__)
         with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
-
         with open(os.path.join(local_dir, 'parallel_points_01.pickle'), 'rb') as f: self.para_lines = pickle.load(f)
-        with open(os.path.join(local_dir, 'winner.pickle'), 'rb') as f: g = pickle.load(f)
-        with open(os.path.join(local_dir, 'genome_config.pickle'), 'rb') as f: conf = pickle.load(f)
-        accel_values = [7, 10, 11, 12, 13, 14, 15]
-        deccel_values = [14, 17, 18, 19, 20, 21, 22]
-        speed_index = randrange(0, 7)
-
-        #cars.AiCar(self.screen, self, [0, 0], 2, accel_values[speed_index], deccel_values[speed_index], g, conf, self.cent_line, 0)
-        self.player = cars.PlayerCar(self.screen, self, [0, 0], self.cent_line)
-        self.rotation = self.player.car_angle
-        self.cars = []
-        #self.cars = [cars.AiCar(self.screen, self, [0, 0], 2, accel_values[0], deccel_values[0], g, conf, self.cent_line, 0)]
-        self.screen_center = self.player.pos
+        self.car = car
+        self.rotation = self.car.car_angle
+        self.screen_center = self.car.pos
         self.rescale()
 
     def convert_passer(self, gamev, ofssc = 1):
@@ -112,15 +116,13 @@ class Game():
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
             return result
 
-    def tick(self, time_elapsed):
+    def tick(self, car):
+        self.car = car
+        self.rotation = self.car.car_angle
+        self.screen_center = self.car.pos
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
-        self.player.tick(time_elapsed)
-        for car in self.cars: car.tick(time_elapsed, self.rotation)
-        self.screen_center = self.player.pos
-        self.rotation = self.player.car_angle
-
 
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
@@ -130,7 +132,6 @@ dtype=np.float64)
         scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
-
 
     def background(self):
         cent_line_screen = []
@@ -144,19 +145,12 @@ dtype=np.float64)
         pg.gfxdraw.filled_polygon(self.screen, pp_screen, (105,105,105))
         pg.draw.lines(self.screen, (255,255,255), True, cent_line_screen, 5)
 
-
     def rescale(self):
         self.create_matrix()
         self.background()
 
+    def events(self): return None
 
-    def events(self, event):
-        if event.type in (pg.KEYDOWN, pg.KEYUP):
-            if event.key == pg.K_LEFT and self.zoom > 0.08: self.zoom -= 0.01
-
-            if event.key == pg.K_RIGHT and self.zoom < 0.8: self.zoom += 0.01
-
-            self.player.control(event)
  
  
  

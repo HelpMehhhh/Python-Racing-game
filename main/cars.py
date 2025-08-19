@@ -120,7 +120,6 @@ class Car():
         self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
         self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
 
-
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, cent_line, color_id=1, simulation=0):
         Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
@@ -151,7 +150,6 @@ class PlayerCar(Car):
         self.screen.blit(self.car, self.car_rect)
         pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
         pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
-
 
 class AiCar(Car):
 

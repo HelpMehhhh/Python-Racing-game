@@ -1,5 +1,19 @@
-import torch
 
-x = torch.tensor([8.8986456, 4.234, 9.4534, 4, 5, 6, 5])
 
-print(x.shape)
+class Test():
+    def __init__(self, testnum):
+        self.testnum = testnum
+
+    def function(self):
+        print(self.testnum)
+
+
+def main():
+    num = 0
+    test = Test(num)
+    while True:
+        num += 1
+        test.function()
+
+if __name__ == '__main__':
+    main()

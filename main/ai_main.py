@@ -5,6 +5,7 @@ import cProfile
 import torch
 import pickle
 import numpy as np
+from graphics import Graphics
 
 
 from collections import deque
@@ -70,6 +71,7 @@ def train():
     agent = Agent()
     with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
     ai_car = AiCar(0, 0, [0,0], 1, 14, 21, cent_line)
+    graphics = Graphics(ai_car)
     while True:
         # get old state
         state_old = ai_car.get_data()
@@ -87,6 +89,7 @@ def train():
         # remember
         agent.remember(state_old, final_move, reward, state_new, done)
 
+        graphics.graphics_loop(ai_car)
         if done:
             # train long memory, plot result
             ai_car.reset()
@@ -104,7 +107,7 @@ def train():
             mean_score = total_score / agent.n_games
             plot_mean_scores.append(mean_score)
             plot(plot_scores, plot_mean_scores)
-
+        
 
 if __name__ == '__main__':
     train()

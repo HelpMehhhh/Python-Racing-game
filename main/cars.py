@@ -151,8 +151,6 @@ class PlayerCar(Car):
         pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 class AiCar(Car):
-    DistanceTrainingLimit = 1310
-
     def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):
         Car.__init__(self, screen, game, start_pos, cl_points, color_id, simulation)
         self.max_accel = max_accel/1000000
@@ -206,7 +204,7 @@ class AiCar(Car):
         if self.time > 60:
             reason = "Finished"
             self.state = 0
-            if reason is not None and self.distance > 1300:
+            if reason is not None and self.distance > 1300 and self.simulation:
                 print(reason, self.distance, self.time, self.speed, self.d)
 
         if abs(self.d) >= 7:

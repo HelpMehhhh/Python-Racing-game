@@ -3,12 +3,15 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import os
+import numpy as np
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
+
         self.linear2 = nn.Linear(hidden_size, output_size)
+
 
     def forward(self, x):
         x = F.relu(self.linear1(x))
@@ -33,10 +36,18 @@ class QTrainer:
         self.criterion = nn.MSELoss()
 
     def train_step(self, state, action, reward, next_state, done):
+        state = np.array(state)
         state = torch.tensor(state, dtype=torch.float)
+        state = state.to('cuda')
+        next_state = np.array(next_state)
         next_state = torch.tensor(next_state, dtype=torch.float)
+        next_state = next_state.to('cuda')
+        action = np.array(action)
         action = torch.tensor(action, dtype=torch.long)
+        action = action.to('cuda')
+        reward = np.array(reward)
         reward = torch.tensor(reward, dtype=torch.float)
+        reward = reward.to('cuda')
         # (n, x)
 
         if len(state.shape) == 1:

@@ -25,6 +25,7 @@ class Agent:
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
         self.model = Linear_QNet(12, 256, 6)
+        self.model = self.model.to('cuda')
         self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
 
     def remember(self, state, action, reward, next_state, done):
@@ -56,6 +57,7 @@ class Agent:
 
         else:
             state0 = torch.tensor(state, dtype=torch.float)
+            state0 = state0.to('cuda')
             prediction = self.model(state0)
             new_pred = prediction.reshape(2,3)
             final_outputs[torch.argmax(new_pred[0]).item()] = 1
@@ -72,37 +74,23 @@ def train():
     agent = Agent()
     with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
     car = [{"model": AiCar([0,0], 14, 21, cent_line), "color_id": 1, "focus": True}]
-    pg.init()
-    clock = pg.time.Clock()
     graphics = Graphics(car, 1)
     while True:
         # get old state
-        print(car[0]["model"].get_start())
         state_old = car[0]["model"].get_data()
-
         # get move
-        print(car[0]["model"].get_start())
         final_move = agent.get_action(state_old)
-
         # perform move and get new state
-        print(car[0]["model"].get_start())
         reward, done, score = car[0]["model"].tick(17, final_move)
-        print(car[0]["model"].get_start())
         state_new = car[0]["model"].get_data()
-
         # train short memory
-        print(car[0]["model"].get_start())
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
-
         # remember
-        print(car[0]["model"].get_start())
         agent.remember(state_old, final_move, reward, state_new, done)
-        print(car[0]["model"].get_start())
         graphics.graphics_loop(car)
-        print(car[0]["model"].get_start())
         if done:
             # train long memory, plot result
-            
+
             car[0]["model"].reset()
             agent.n_games += 1
             agent.train_long_memory()
@@ -117,7 +105,7 @@ def train():
             total_score += score
             mean_score = total_score / agent.n_games
             plot_mean_scores.append(mean_score)
-            plot(plot_scores, plot_mean_scores)
+            #plot(plot_scores, plot_mean_scores)
 
 
 if __name__ == '__main__':

@@ -17,22 +17,11 @@ class Car():
     def __init__(self, start_pos, cent_line):
         self.start_pos = start_pos
         self.cl_points = cent_line
-        self.pos = start_pos
-        self.car_angle = np.pi/2
-        self.target_cl_index = 1
-        self.distance_to_seg = 0
-        self.speed = 0
-        self.turning_angle = 0
-        self.steerstate = self.SteerState.center
-        self.speedstate = self.SpeedState.accel
-        self.radius = 1000
-        self.distance = 0
-        self.time = 0
-        self.d_track = self.get_current_dist()
-        self.score = 0
+        self.reset()
+
 
     def reset(self):
-        self.pos = self.start_pos
+        self.pos = self.start_pos.copy()
         self.car_angle = np.pi/2
         self.target_cl_index = 1
         self.distance_to_seg = 0
@@ -149,6 +138,7 @@ class AiCar(Car):
         Car.__init__(self, start_pos, cl_points)
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
+        self.last_distance = 0
 
     def tick(self, time_elapsed, action):
         self.time_elapsed = time_elapsed
@@ -193,13 +183,16 @@ class AiCar(Car):
 
         reward = 0
         game_over = False
+        too_slow = False
+        self.last_distance = self.distance
         self.d_track = self.get_current_dist()
-        if abs(self.d_track) > 7:
+        if self.time > 10 and self.distance/self.time < 2: too_slow = True
+        if abs(self.d_track) > 7 or too_slow:
             game_over = True
-            reward = -10
+            reward = -100
             return reward, game_over, self.score
         else:
-            reward = self.distance
+            reward = self.distance-self.last_distance
             self.score = self.distance
         return reward, game_over, self.score
 

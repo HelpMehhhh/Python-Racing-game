@@ -1,3 +1,4 @@
+from enum import Enum
 
 
 class Test():
@@ -5,15 +6,18 @@ class Test():
         self.testnum = testnum
 
     def function(self):
-        print(self.testnum)
+        self.testnum += 0.0001
 
 
 def main():
-    num = 0
-    test = Test(num)
+    cars = [{"model": Test(1), "pram1": 1}]
     while True:
-        num += 1
-        test.function()
+        cars[0]["model"].function()
+        other_func(cars)
+
+
+def other_func(cars):
+    print(cars[0]["model"].testnum)
 
 if __name__ == '__main__':
     main()

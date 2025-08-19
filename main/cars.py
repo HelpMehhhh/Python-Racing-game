@@ -14,13 +14,9 @@ class Car():
         deccel = -1
 
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, game, start_pos, cent_line, color_id, simulation):
-        self.screen = screen
+    def __init__(self, start_pos, cent_line):
         self.start_pos = start_pos
-        self.color_id = color_id
         self.cl_points = cent_line
-        self.game = game
-        self.simulation = simulation
         self.reset()
 
     def reset(self):
@@ -38,10 +34,6 @@ class Car():
         self.point = self.pos
         self.d_track = self.get_current_dist()
         self.score = self.distance
-                
-    def tick(self, time_elapsed, rotation=None):
-        self.time_elapsed = time_elapsed
-        if not self.simulation: self.draw()
 
     def get_current_dist(self):
         seg_data = self.get_current_seg()
@@ -116,12 +108,9 @@ class Car():
         if self.car_angle > np.pi: self.car_angle -= 2*np.pi
         if self.car_angle < -np.pi: self.car_angle += 2*np.pi
 
-    def draw(self):
-        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
 
 class PlayerCar(Car):
-    def __init__(self, screen, game, start_pos, cent_line, color_id=1, simulation=0):
+    def __init__(self, start_pos, cent_line):
         Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
         self.max_accel = 15/1000000
         self.max_deccel = 22/1000000
@@ -138,29 +127,21 @@ class PlayerCar(Car):
             elif (event.key == pg.K_DOWN): self.speedstate = self.SpeedState.deccel
 
     def tick(self, time_elapsed):
-        super().tick(time_elapsed)
         self.movement_calc()
         self.time += time_elapsed/1000
         self.get_current_dist()
-        print(self.speed)
 
-    def draw(self):
-        super().draw()
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
-        self.screen.blit(self.car, self.car_rect)
-        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 class AiCar(Car):
 
-    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, cl_points, simulation=1):
-        Car.__init__(self, screen, game, start_pos, cl_points, color_id, simulation)
+    def __init__(self, start_pos, max_accel, max_deccel, cl_points):
+        Car.__init__(self, start_pos, cl_points)
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
 
     def tick(self, time_elapsed, action, rotation):
         self.rotation = rotation
-        super().tick(time_elapsed)
+        self.time_elapsed = time_elapsed
         return self.brain_calc(action)
 
     def get_data(self):
@@ -197,11 +178,11 @@ class AiCar(Car):
         self.speedstate = [self.SpeedState.accel, self.SpeedState.const, self.SpeedState.deccel][speed_choice]
         self.movement_calc()
 
-        
+
         reward = 0
         game_over = False
         self.d_track = self.get_current_dist()
-        if abs(self.d_track) > 7 or ...:
+        if abs(self.d_track) > 7:
             game_over = True
             reward = -10
             return reward, game_over, self.score
@@ -210,12 +191,5 @@ class AiCar(Car):
             self.score = self.distance
         return reward, game_over, self.score
 
-    def draw(self):
-        super().draw()
-        self.car = pg.transform.rotate(self.car, float(np.degrees(self.car_angle))-float(np.degrees(self.rotation)))
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
-        self.screen.blit(self.car, self.car_rect)
-        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 

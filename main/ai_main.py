@@ -52,7 +52,7 @@ class Agent:
             speed = r.randint(3, 5)
             final_outputs[steer] = 1
             final_outputs[speed] = 1
-        
+
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
@@ -70,18 +70,19 @@ def train():
     record = 0
     agent = Agent()
     with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
-    ai_car = AiCar(0, 0, [0,0], 1, 14, 21, cent_line)
-    graphics = Graphics(ai_car)
+    car = [{"model": AiCar([0,0], 14, 21, cent_line), "color_id": 1, "focus": False}]
+
+    graphics = Graphics(car, 1)
     while True:
         # get old state
-        state_old = ai_car.get_data()
+        state_old = car[0]["model"].get_data()
 
         # get move
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, score = ai_car.tick(17, final_move, 0)
-        state_new = ai_car.get_data()
+        reward, done, score = car[0]["model"].tick(17, final_move, 0)
+        state_new = car[0]["model"].get_data()
 
         # train short memory
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
@@ -89,10 +90,10 @@ def train():
         # remember
         agent.remember(state_old, final_move, reward, state_new, done)
 
-        graphics.graphics_loop(ai_car)
+        graphics.graphics_loop(car)
         if done:
             # train long memory, plot result
-            ai_car.reset()
+            car[0]["model"].reset()
             agent.n_games += 1
             agent.train_long_memory()
 
@@ -107,7 +108,7 @@ def train():
             mean_score = total_score / agent.n_games
             plot_mean_scores.append(mean_score)
             plot(plot_scores, plot_mean_scores)
-        
+
 
 if __name__ == '__main__':
     train()

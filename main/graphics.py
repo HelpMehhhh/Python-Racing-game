@@ -1,73 +1,69 @@
+from button import Button
 import pygame as pg
-
-
-import sys
-import numpy as np
-from pygame import gfxdraw
-from numba import jit
+import os.path
+from sys import exit
 import pickle
-import cars
-from random import randrange
+import numpy as np
+from numba import jit
+from pygame import gfxdraw
 
-pg.init()
-
-FRAME_RATE = 60
-
-
-
-
-
-
-class Mainloop():
+class Graphics():
     def __init__(self):
         self.SCREEN_WIDTH = pg.display.Info().current_w
         self.SCREEN_HEIGHT = pg.display.Info().current_h
         self.clock = pg.time.Clock()
         icon = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/game_icon.png')
         pg.display.set_icon(icon)
-        self.running = True
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.fullscreen = True
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
         self.scene = MainMenu(self.screen)
-        self.main_loop()
-
+        self.scene.rescale()
 
     def change_scene(self, event):
         if event == "PLAY": self.scene = Game(self.screen)
 
-
-    def main_loop(self):
-        self.scene.rescale()
-        while self.running:
-            t = self.clock.tick(FRAME_RATE)
-            self.scene.tick(t)
-            pg.display.flip()
-            for event in pg.event.get():
-                r = self.scene.events(event)
-                if r:
-                    if r[0] == 1: self.change_scene(r[1])
-
-                if event.type == pg.KEYDOWN:
-                    if event.key == pg.K_ESCAPE: sys.exit()
-                    if event.key == pg.K_F11:
-                        if self.fullscreen:
-                            self.screen = pg.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pg.RESIZABLE)
-                            self.fullscreen = False
-
-                        else:
-                            self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-                            self.fullscreen = True
-
-                elif event.type == pg.QUIT: self.running = False
-
-                elif event.type == pg.WINDOWRESIZED: self.scene.rescale()
+    def graphics_loop(self):
+        self.scene.tick()
+        pg.display.flip()
+        for event in pg.event.get():
+            if event.type == pg.KEYDOWN:
+                if event.key == pg.K_ESCAPE: exit(0)
+                if event.key == pg.K_F11:
+                    if self.fullscreen:
+                        self.screen = pg.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pg.RESIZABLE)
+                        self.fullscreen = False
+                    else:
+                        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+                        self.fullscreen = True
+            elif event.type == pg.QUIT: self.running = False
+            elif event.type == pg.WINDOWRESIZED: self.scene.rescale()
 
 
+class MainMenu():
+    def __init__(self, screen):
+        self.screen = screen
+        self.play = Button(self.screen, pos=(2, 2.66), text="PLAY")
+        self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
+        self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
 
+    def tick(self, t):
+        self.screen.blit(self.menu_bg, (0,0))
+        self.play.update()
+        self.quit.update()
+        self.settings.update()
 
+    def rescale(self):
+        self.x, self.y = self.screen.get_size()
+        self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
+        self.menu_bg = pg.transform.scale(self.menu_bg, self.screen.get_size())
+        self.play.rescale()
+        self.settings.rescale()
+        self.quit.rescale()
 
-
+    def events(self, event):
+        if self.play.update(event): return [1, "PLAY"]
+        if self.quit.update(event): exit(0)
 
 
 class Game():
@@ -94,7 +90,6 @@ class Game():
         self.screen_center = self.player.pos
         self.rescale()
 
-
     def convert_passer(self, gamev, ofssc = 1):
         npgamev = np.array([*gamev], dtype=np.float64)
         screen_center = np.array([*self.screen_center], dtype=np.float64)
@@ -102,7 +97,6 @@ class Game():
         if ofssc: return (result[0], pg.display.Info().current_h - result[1])
 
         else: return result
-
 
     @staticmethod
     @jit
@@ -118,7 +112,6 @@ class Game():
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
             return result
 
-
     def tick(self, time_elapsed):
         self.create_matrix()
         self.screen.fill((78, 217, 65))
@@ -131,7 +124,8 @@ class Game():
 
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
-        rotate = np.array([[np.sin(self.rotation), (np.cos(self.rotation))], [-np.cos(self.rotation), np.sin(self.rotation)]], dtype=np.float64)
+        rotate = np.array([[np.sin(self.rotation), (np.cos(self.rotation))], [-np.cos(self.rotation), np.sin(self.rotation)]], 
+dtype=np.float64)
         self.rotation_matrix = rotate
         scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)
@@ -163,11 +157,86 @@ class Game():
             if event.key == pg.K_RIGHT and self.zoom < 0.8: self.zoom += 0.01
 
             self.player.control(event)
+ 
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+ 
+ 
+ 
 
 
+ 
+ 
+ 
+ 
+ 
+
+ 
 
 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 
-if __name__ == "__main__":
-    #cProfile.run("Mainloop()", sort="cumtime")
-    Mainloop()
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+d
+ 
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+ 
+ 
+
+ 
+ 
+
+ 
+ 
+
+
+ 
+ 
+ 
+
+
+ 
+ 
+ 
+
+ 
+
+ 

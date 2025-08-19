@@ -39,8 +39,7 @@ class Car():
         self.d_track = self.get_current_dist()
         self.score = self.distance
                 
-
-    def tick(self, time_elapsed):
+    def tick(self, time_elapsed, rotation=None):
         self.time_elapsed = time_elapsed
         if not self.simulation: self.draw()
 

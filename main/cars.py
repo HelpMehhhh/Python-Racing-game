@@ -162,6 +162,8 @@ class AiCar(Car):
         self.config = config
         self.n_net = nn.FeedForwardNetwork.create(self.genome, self.config)
         self.d = 0
+        self.last_time = 0
+        self.last_dist = 0
 
     def tick(self, time_elapsed, rotation):
         self.rotation = rotation
@@ -201,11 +203,18 @@ class AiCar(Car):
         self.d = self.get_current_dist()
         reason = None
 
-        if self.time > 60:
+        if self.time > 600:
             reason = "Finished"
             self.state = 0
             if reason is not None and self.distance > 1300 and self.simulation:
                 print(reason, self.distance, self.time, self.speed, self.d)
+
+        if self.time > self.last_time + 10:
+            if (self.distance - self.last_dist) / (self.time - self.last_time) < 80/3.6:
+                reason = "Too slow"
+                self.state = 0
+            self.last_dist = self.distance
+            self.last_time = self.time
 
         if abs(self.d) >= 7:
             reason = "Off Track"

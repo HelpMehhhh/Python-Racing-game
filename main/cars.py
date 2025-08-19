@@ -17,7 +17,19 @@ class Car():
     def __init__(self, start_pos, cent_line):
         self.start_pos = start_pos
         self.cl_points = cent_line
-        self.reset()
+        self.pos = start_pos
+        self.car_angle = np.pi/2
+        self.target_cl_index = 1
+        self.distance_to_seg = 0
+        self.speed = 0
+        self.turning_angle = 0
+        self.steerstate = self.SteerState.center
+        self.speedstate = self.SpeedState.accel
+        self.radius = 1000
+        self.distance = 0
+        self.time = 0
+        self.d_track = self.get_current_dist()
+        self.score = 0
 
     def reset(self):
         self.pos = self.start_pos
@@ -31,9 +43,8 @@ class Car():
         self.radius = 1000
         self.distance = 0
         self.time = 0
-        self.point = self.pos
         self.d_track = self.get_current_dist()
-        self.score = self.distance
+        self.score = 0
 
     def get_current_dist(self):
         seg_data = self.get_current_seg()
@@ -111,7 +122,7 @@ class Car():
 
 class PlayerCar(Car):
     def __init__(self, start_pos, cent_line):
-        Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
+        Car.__init__(self, start_pos, cent_line)
         self.max_accel = 15/1000000
         self.max_deccel = 22/1000000
 
@@ -139,10 +150,11 @@ class AiCar(Car):
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
 
-    def tick(self, time_elapsed, action, rotation):
-        self.rotation = rotation
+    def tick(self, time_elapsed, action):
         self.time_elapsed = time_elapsed
         return self.brain_calc(action)
+
+    def get_start(self): return self.start_pos
 
     def get_data(self):
         #returns should be floats, function insides should be handled with numpy
@@ -187,7 +199,7 @@ class AiCar(Car):
             reward = -10
             return reward, game_over, self.score
         else:
-            reward = int(round(self.distance, 0))
+            reward = self.distance
             self.score = self.distance
         return reward, game_over, self.score
 

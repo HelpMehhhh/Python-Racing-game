@@ -6,6 +6,7 @@ import torch
 import pickle
 import numpy as np
 from graphics import Graphics
+import pygame as pg
 
 
 from collections import deque
@@ -56,9 +57,9 @@ class Agent:
         else:
             state0 = torch.tensor(state, dtype=torch.float)
             prediction = self.model(state0)
-            prediction.reshape(2,3)
-            final_outputs[torch.argmax(prediction[0]).item()] = 1
-            final_outputs[(torch.argmax(prediction[1]).item())+3] = 1
+            new_pred = prediction.reshape(2,3)
+            final_outputs[torch.argmax(new_pred[0]).item()] = 1
+            final_outputs[(torch.argmax(new_pred[1]).item())+3] = 1
 
         return final_outputs
 
@@ -70,29 +71,38 @@ def train():
     record = 0
     agent = Agent()
     with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
-    car = [{"model": AiCar([0,0], 14, 21, cent_line), "color_id": 1, "focus": False}]
-
+    car = [{"model": AiCar([0,0], 14, 21, cent_line), "color_id": 1, "focus": True}]
+    pg.init()
+    clock = pg.time.Clock()
     graphics = Graphics(car, 1)
     while True:
         # get old state
+        print(car[0]["model"].get_start())
         state_old = car[0]["model"].get_data()
 
         # get move
+        print(car[0]["model"].get_start())
         final_move = agent.get_action(state_old)
 
         # perform move and get new state
-        reward, done, score = car[0]["model"].tick(17, final_move, 0)
+        print(car[0]["model"].get_start())
+        reward, done, score = car[0]["model"].tick(17, final_move)
+        print(car[0]["model"].get_start())
         state_new = car[0]["model"].get_data()
 
         # train short memory
+        print(car[0]["model"].get_start())
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
 
         # remember
+        print(car[0]["model"].get_start())
         agent.remember(state_old, final_move, reward, state_new, done)
-
+        print(car[0]["model"].get_start())
         graphics.graphics_loop(car)
+        print(car[0]["model"].get_start())
         if done:
             # train long memory, plot result
+            
             car[0]["model"].reset()
             agent.n_games += 1
             agent.train_long_memory()

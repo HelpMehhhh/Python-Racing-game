@@ -14,6 +14,7 @@ class Graphics():
 
     def __init__(self, cars, scene):
         pg.init()
+        self.clock = pg.time.Clock()
         self.SCREEN_WIDTH = pg.display.Info().current_w
         self.SCREEN_HEIGHT = pg.display.Info().current_h
         icon = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/game_icon.png')

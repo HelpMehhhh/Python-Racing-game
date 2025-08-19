@@ -1,23 +1,4 @@
-from enum import Enum
+import torch
+tensor = torch.tensor([ -4.5978,  -5.7619,  -1.7020,  -1.4186,   6.4840, -11.2722])
 
-
-class Test():
-    def __init__(self, testnum):
-        self.testnum = testnum
-
-    def function(self):
-        self.testnum += 0.0001
-
-
-def main():
-    cars = [{"model": Test(1), "pram1": 1}]
-    while True:
-        cars[0]["model"].function()
-        other_func(cars)
-
-
-def other_func(cars):
-    print(cars[0]["model"].testnum)
-
-if __name__ == '__main__':
-    main()
+print(tensor.reshape(2,3))

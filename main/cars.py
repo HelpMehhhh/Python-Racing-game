@@ -141,6 +141,7 @@ class PlayerCar(Car):
         self.steering(time_elapsed)
         self.movement_calc(time_elapsed)
         self.get_current_dist()
+        #print(self.distance)
 
     def draw(self):
         super().draw()
@@ -167,16 +168,16 @@ class AiCar(Car):
     def tick(self, time_elapsed, rotation):
         self.rotation = rotation
         super().tick(time_elapsed)
-        self.brain_calc(time_elapsed)
+        self.brain_calc(17)
         self.movement_calc(time_elapsed)
 
     def get_alive(self): return self.state
 
     def get_reward(self):
-        return self.distance - abs(self.d)
+        return self.distance
 
-    def get_data(self, d):
-        data = [self.speed/0.1, float(d/7)]
+    def get_data(self):
+        data = [self.speed/0.1, float(self.d/7)]
         origin_point = np.array(self.pos)
         target_point = np.array(self.cl_points[(self.target_cl_index)])
         prev_point = np.array(self.cl_points[(self.target_cl_index-1)])
@@ -187,7 +188,7 @@ class AiCar(Car):
         data.append(float((target_angle - self.car_angle)/np.pi))
         prev_angle = target_angle
         prev_point = target_point
-        for i in range(1, 3):
+        for i in range(1, 4):
             next_point = np.array(self.cl_points[(self.target_cl_index+i)%len(self.cl_points)])
             cur_vector = next_point - prev_point
             cur_angle = np.arctan2(cur_vector[1], cur_vector[0])
@@ -202,15 +203,18 @@ class AiCar(Car):
         self.d = self.get_current_dist()
         reason = None
 
-        if self.time > 10:
+        if self.time > 60:
             reason = "Finished"
             self.state = 0
+            if reason is not None and self.distance > 1300:
+                print(reason, self.distance, self.time, self.speed, self.d)
 
-        if reason is not None and self.distance > 5:
-            print(reason, self.distance, self.time, self.speed, self.d)
+        if abs(self.d) >= 7:
+            reason = "Off Track"
+            self.state = 0
 
 
-        output = self.n_net.activate(self.get_data(self.d))
+        output = self.n_net.activate(self.get_data())
 
         steer = min(1, max(-1, output[0]))
         accel = min(1, max(-1, output[1]))

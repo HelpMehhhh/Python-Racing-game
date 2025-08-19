@@ -40,24 +40,30 @@ def run(config_path, generations, extract):
         neat.DefaultStagnation,
         config_path
     )
-    with open(os.path.join(local_dir, 'genome_config.pickle'), 'wb') as f: pickle.dump(config, f)
     checkpoint_dir = "models"
     if not extract: pop = neat.Population(config)
     else:
-        pop = Checkpointer.restore_checkpoint(os.path.join(checkpoint_dir, "neat-checkpoint-constacceldecell-165"))
-        pop = neat.Population(config, initial_state=(pop.population, pop.species, pop.generation))
+        pop = Checkpointer.restore_checkpoint(os.path.join(checkpoint_dir, "neat-checkpoint-cfr-796"))
+        #pop = neat.Population(config, initial_state=(pop.population, pop.species, pop.generation))
     pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
-    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-constacceldecell-")))
+    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr-")))
 
     pop.run(eval_genomes, generations)
     final_genomes = pop.population
-    for genome_id, genome in final_genomes.items(): print(f"Genome ID: {genome_id}, Fitness: {genome.fitness}")
-    winner_genome = stats.best_genome()
-    neat.visualise.draw_net(winner_genome, view=True)
+    winner_genome = None
+    winner_fitness = 0
+    for genome_id, genome in final_genomes.items():
+       print(f"Genome ID: {genome_id}, Fitness: {genome.fitness}")
+       if not genome.fitness: continue
+       if genome.fitness <= winner_fitness: continue
+       winner_genome = genome
+       winner_fitness = genome.fitness
+    print(f"Winner Fitness: {winner_genome.fitness}")
 
+    with open(os.path.join(local_dir, 'genome_config.pickle'), 'wb') as f: pickle.dump(pop.config, f)
     with open(os.path.join(local_dir, 'winner.pickle'), 'wb') as f: pickle.dump(winner_genome, f)
 
 if __name__ == '__main__':
@@ -65,7 +71,7 @@ if __name__ == '__main__':
     #profiler.enable()
     local_dir = os.path.dirname(__file__)
     config_path = os.path.join(local_dir, 'config-feedforward.txt')
-    run(config_path, None, False)
+    run(config_path, None, True)
     #profiler.disable()
     #stats = pstats.Stats(profiler).sort_stats('cumulative')
     #stats.print_stats()

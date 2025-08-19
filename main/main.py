@@ -27,8 +27,8 @@ class Mainloop():
         self.fullscreen = False
         self.screen = pg.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT), pg.RESIZABLE)
         Window.from_display_module().maximize()
-        #self.scene = MainMenu(self.screen)
-        self.scene = Game(self.screen)
+        self.scene = MainMenu(self.screen)
+        #self.scene = Game(self.screen)
         self.main_loop()
 
     def change_scene(self, event):
@@ -105,7 +105,7 @@ class Game():
         self.player = cars.PlayerCar(self.screen, self, [0, 0], self.cent_line)
         self.rotation = self.player.car_angle
         self.cars = []
-        #self.cars = [cars.AiCar(self.screen, self, [0, 0], 2, accel_values[0], deccel_values[0], g, conf, self.cent_line, 0)]
+        self.cars.append(cars.AiCar(self.screen, self, [0, 1], 2, accel_values[5], deccel_values[5], g, conf, self.cent_line, 0))
         self.screen_center = self.player.pos
         self.rescale()
 

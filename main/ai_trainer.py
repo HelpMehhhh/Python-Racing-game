@@ -11,12 +11,12 @@ def eval_genomes(genomes, config):
     with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
     global cars
     cars = []
-    accel_values = [7, 10, 11, 12, 13, 14, 15]
-    deccel_values = [14, 17, 18, 19, 20, 21, 22]
+    accel_values = [7, 10, 11, 12, 13, 14, 16]
+    deccel_values = [14, 17, 18, 19, 20, 21, 23]
     for g_id, g in genomes:
         g.fitness = 0
         #speed_index = r.randrange(0, 7)
-        cars.append(AiCar(0, 0, [0,1], 1, accel_values[5], deccel_values[5], g, config, cent_line))
+        cars.append(AiCar(0, 0, [0,1], 1, accel_values[6], deccel_values[6], g, config, cent_line))
 
     have_live = True
     while have_live:
@@ -49,7 +49,7 @@ def run(config_path, generations, extract):
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
-    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr-")))
+    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr-100kmh-")))
 
     pop.run(eval_genomes, generations)
     final_genomes = pop.population

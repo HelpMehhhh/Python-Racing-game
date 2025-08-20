@@ -38,7 +38,7 @@ class Mainloop():
         self.scene.rescale()
         while self.running:
             t = self.clock.tick(FRAME_RATE)
-            self.scene.tick(t)
+            self.scene.tick(17)
             pg.display.flip()
             for event in pg.event.get():
                 r = self.scene.events(event)

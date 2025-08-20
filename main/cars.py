@@ -147,8 +147,8 @@ class PlayerCar(Car):
         super().draw()
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
-        #pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        #pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
+        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
+        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 class AiCar(Car):
     def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):

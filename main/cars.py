@@ -85,8 +85,8 @@ class Car():
 class PlayerCar(Car):
     def __init__(self, screen, game, start_pos, cent_line, color_id=1, simulation=0):
         Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
-        self.max_accel = 15/1000000
-        self.max_deccel = 22/1000000
+        self.max_accel = 17/1000000
+        self.max_deccel = 25/1000000
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
 
@@ -129,9 +129,9 @@ class PlayerCar(Car):
             radius = np.sqrt((((2/np.tan(abs(self.turning_angle)))+1)**2)+1)
         else:
             radius = 1000
-        max_speed = np.sqrt(radius*50)/1000
+        max_speed = np.sqrt(radius*60)/1000
         if self.speed > max_speed:
-            radius = ((self.speed*1000)**2)/50
+            radius = ((self.speed*1000)**2)/60
 
         d_angle = np.sign(self.turning_angle)*((self.speed/radius)*time_elapsed)
         self.car_angle += float(d_angle)
@@ -147,8 +147,8 @@ class PlayerCar(Car):
         super().draw()
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
-        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
+        #pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
+        #pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 class AiCar(Car):
     def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):
@@ -241,7 +241,7 @@ class AiCar(Car):
         self.car = pg.transform.rotate(self.car, float(np.degrees(self.car_angle))-float(np.degrees(self.rotation)))
         self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
         self.screen.blit(self.car, self.car_rect)
-        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
+        #pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
+        #pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 # vim: set sw=4 ts=4 sts=4 et sta sr ai si cin cino=>1s(0u0W1s:

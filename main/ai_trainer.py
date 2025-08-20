@@ -6,6 +6,7 @@ import pickle
 import cProfile
 import pstats
 from neat.checkpoint import Checkpointer
+from graphics import Graphics
 
 def eval_genomes(genomes, config):
     with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
@@ -16,15 +17,19 @@ def eval_genomes(genomes, config):
     for g_id, g in genomes:
         g.fitness = 0
         #speed_index = r.randrange(0, 7)
-        cars.append(AiCar(0, 0, [0,1], 1, accel_values[6], deccel_values[6], g, config, cent_line))
+        cars.append(AiCar([0,1], accel_values[5], deccel_values[5], g, config, cent_line))
 
     have_live = True
+    #cars_graphics = [{"model": car, "color_id": 2, "focus": False} for car in cars]
+
+    #graphics = Graphics(cars_graphics, 1)
     while have_live:
         have_live = False
         for i, car in enumerate(cars):
             if not car.get_alive(): continue
-            car.tick(17, 0)
+            car.tick(17)
             have_live = True
+        #graphics.graphics_loop(cars_graphics)
 
     for i, car in enumerate(cars):
         genomes[i][1].fitness = car.get_reward()
@@ -49,7 +54,7 @@ def run(config_path, generations, extract):
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
-    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr-100kmh-")))
+    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr-6_6-")))
 
     pop.run(eval_genomes, generations)
     final_genomes = pop.population

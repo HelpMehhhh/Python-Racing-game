@@ -15,17 +15,12 @@ class Car():
         deccel = -1
 
     #color id refers to how the car image files are named 1 through 6
-    def __init__(self, screen, game, start_pos, cent_line, color_id, simulation):
-        self.screen = screen
+    def __init__(self, start_pos, cent_line):
         self.pos = [cent_line[0][0]+start_pos[0], cent_line[0][1]+start_pos[1]]
-        self.color_id = color_id
         self.cl_points = cent_line
         self.turning_angle = 0
         self.car_angle = np.pi/2
         self.speed = 0
-        self.game = game
-        self.simulation = simulation
-
         self.time = 0
         self.target_cl_index = 1
         self.distance_to_seg = 0
@@ -34,7 +29,6 @@ class Car():
 
     def tick(self, time_elapsed):
         self.time += time_elapsed/1000
-        if not self.simulation: self.draw()
 
     def get_current_dist(self):
         seg_data = self.get_current_seg()
@@ -78,13 +72,10 @@ class Car():
         if self.car_angle > np.pi: self.car_angle -= 2*np.pi
         if self.car_angle < -np.pi: self.car_angle += 2*np.pi
 
-    def draw(self):
-        self.car = pg.image.load(os.path.dirname(os.path.abspath(__file__))+f'/../static/car_{self.color_id}.png')
-        self.car = pg.transform.scale(self.car, self.game.convert_passer([2, 4], 0))
 
 class PlayerCar(Car):
-    def __init__(self, screen, game, start_pos, cent_line, color_id=1, simulation=0):
-        Car.__init__(self, screen, game, start_pos, cent_line, color_id, simulation)
+    def __init__(self, start_pos, cent_line):
+        Car.__init__(self, start_pos, cent_line)
         self.max_accel = 17/1000000
         self.max_deccel = 25/1000000
         self.steerstate = self.SteerState.center
@@ -143,16 +134,10 @@ class PlayerCar(Car):
         self.get_current_dist()
         #print(self.distance)
 
-    def draw(self):
-        super().draw()
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
-        self.screen.blit(self.car, self.car_rect)
-        pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 class AiCar(Car):
-    def __init__(self, screen, game, start_pos, color_id, max_accel, max_deccel, genome, config, cl_points, simulation=1):
-        Car.__init__(self, screen, game, start_pos, cl_points, color_id, simulation)
+    def __init__(self, start_pos, max_accel, max_deccel, genome, config, cl_points):
+        Car.__init__(self, start_pos, cl_points)
         self.max_accel = max_accel/1000000
         self.max_deccel = max_deccel/1000000
         self.state = 1 #1 for alive, 0 for dead
@@ -165,8 +150,7 @@ class AiCar(Car):
         self.last_time = 0
         self.last_dist = 0
 
-    def tick(self, time_elapsed, rotation):
-        self.rotation = rotation
+    def tick(self, time_elapsed):
         super().tick(time_elapsed)
         self.brain_calc(17)
         self.movement_calc(time_elapsed)
@@ -236,12 +220,5 @@ class AiCar(Car):
 
         #print(self.speed*3600, self.distance)
 
-    def draw(self):
-        super().draw()
-        self.car = pg.transform.rotate(self.car, float(np.degrees(self.car_angle))-float(np.degrees(self.rotation)))
-        self.car_rect = self.car.get_rect(center=self.game.convert_passer(self.pos))
-        self.screen.blit(self.car, self.car_rect)
-        #pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.pos), self.game.convert_passer(self.cl_points[self.target_cl_index]), 6)
-        #pg.draw.line(self.screen, 'red', self.game.convert_passer(self.pos), self.game.convert_passer(self.point), 6)
 
 # vim: set sw=4 ts=4 sts=4 et sta sr ai si cin cino=>1s(0u0W1s:

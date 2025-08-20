@@ -4,19 +4,18 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 import numpy as np
-
+torch.set_default_device('cuda')
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
-        self.linear1 = nn.Linear(input_size, hidden_size)
-
-        self.linear2 = nn.Linear(hidden_size, output_size)
-
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, hidden_size)
+        self.fc3 = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        x = F.relu(self.linear1(x))
-        x = self.linear2(x)
-        return x
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        return self.fc3(x)
 
     def save(self, file_name='model.pth'):
         model_folder_path = './model'

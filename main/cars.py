@@ -192,8 +192,8 @@ class AiCar(Car):
             reward = -100
             return reward, game_over, self.score
         else:
-            reward = self.distance-self.last_distance
-            self.score = self.distance
+            reward = abs(self.distance)-abs(self.last_distance)
+            self.score = abs(self.distance)
         return reward, game_over, self.score
 
 

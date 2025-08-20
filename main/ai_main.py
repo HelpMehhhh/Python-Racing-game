@@ -12,15 +12,17 @@ import pygame as pg
 from collections import deque
 from model import Linear_QNet, QTrainer
 from helper import plot
+torch.set_default_device('cuda')
 
-MAX_MEMORY = 100_000
+MAX_MEMORY = 200_000
 BATCH_SIZE = 1000
-LR = 0.001
+LR = 0.0001
 
 class Agent:
 
     def __init__(self):
         self.n_games = 0
+        self.record = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
@@ -47,7 +49,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 80 - self.n_games
+        self.epsilon = 200 - self.record
         final_outputs = [0,0,0,0,0,0]
         if r.randint(0, 200) < self.epsilon:
             steer = r.randint(0, 2)
@@ -74,7 +76,7 @@ def train():
     agent = Agent()
     with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: cent_line = pickle.load(f)
     car = [{"model": AiCar([0,0], 14, 21, cent_line), "color_id": 1, "focus": True}]
-    graphics = Graphics(car, 1)
+    #graphics = Graphics(car, 1)
     while True:
         # get old state
         state_old = car[0]["model"].get_data()
@@ -87,17 +89,19 @@ def train():
         agent.train_short_memory(state_old, final_move, reward, state_new, done)
         # remember
         agent.remember(state_old, final_move, reward, state_new, done)
-        graphics.graphics_loop(car)
+        #graphics.graphics_loop(car)
         if done:
             # train long memory, plot result
 
             car[0]["model"].reset()
             agent.n_games += 1
+
             agent.train_long_memory()
 
             if score > record:
                 record = score
                 agent.model.save()
+            agent.record = record
 
             print('Game', agent.n_games, 'Score', score, 'Record:', record)
 

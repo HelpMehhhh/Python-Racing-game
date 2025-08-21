@@ -21,11 +21,14 @@ class Graphics():
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.fullscreen = True
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-        if scene == Scene.main_menu: self.scene_obj = MainMenu()
-        elif scene == Scene.game: self.scene_obj = GameGraphics(cars)
+        if scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
+        elif scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars)
         self.scene = scene
         self.scene_rescale()
 
+    def scene_chg(self, cars):
+        if self.scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
+        elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars)
 
     def scene_tick(self, cars):
         if self.scene == Scene.main_menu: self.scene_obj.tick()
@@ -41,7 +44,7 @@ class Graphics():
         for event in pg.event.get():
             s_event = self.scene_events()
             if s_event: 
-                self.scene = Scene(s_event)
+                if s_event[0] == 1: self.scene = Scene(s_event[1])
                 return s_event
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE: exit(0)
@@ -77,10 +80,11 @@ class MainMenu():
         self.quit.rescale()
 
     def events(self, event):
-        if self.play.update(event): return Scene.game
+        if self.play.update(event): return [1, Scene.game]
         if self.quit.update(event): exit(0)
 
 class Settings():
+    pass
     
 class CarGraphics():
     def __init__(self, screen, game, color_id, model, focus=True):

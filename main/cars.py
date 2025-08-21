@@ -190,7 +190,7 @@ class AiCar(Car):
         if self.time > 600:
             reason = "Finished"
             self.state = 0
-            if reason is not None and self.distance > 1300 and self.simulation:
+            if reason is not None and self.distance > 1300:
                 print(reason, self.distance, self.time, self.speed, self.d)
 
         if self.time > self.last_time + 10:

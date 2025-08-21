@@ -12,7 +12,7 @@ class Scene(IntEnum):
         game = 1
 class Graphics():
 
-    def __init__(self, cars, scene):
+    def __init__(self, scene, cars=None):
         pg.init()
         self.SCREEN_WIDTH = pg.display.Info().current_w
         self.SCREEN_HEIGHT = pg.display.Info().current_h
@@ -21,27 +21,28 @@ class Graphics():
         self.menu_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/crappy_bg.png')
         self.fullscreen = True
         self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-
-        self.scene = Scene(scene)
-        self.cars = cars
-        self.scenes = [MainMenu(self.screen), GameGraphics(self.screen, self.cars)]
+        if scene == Scene.main_menu: self.scene_obj = MainMenu()
+        elif scene == Scene.game: self.scene_obj = GameGraphics(cars)
+        self.scene = scene
         self.scene_rescale()
 
-    def scene_tick(self):
-        if self.scene == Scene.main_menu: self.scenes[self.scene].tick()
-        elif self.scene == Scene.game: self.scenes[self.scene].tick(self.cars)
 
-    def scene_rescale(self): self.scenes[self.scene].rescale()
+    def scene_tick(self, cars):
+        if self.scene == Scene.main_menu: self.scene_obj.tick()
+        elif self.scene == Scene.game: self.scene_obj.tick(cars)
 
-    def scene_events(self): return self.scenes[self.scene].events()
+    def scene_rescale(self): self.scene_obj.rescale()
 
-    def graphics_loop(self, cars):
-        self.cars = cars
-        self.scene_tick()
+    def scene_events(self): return self.scene_obj.events()
+
+    def graphics_loop(self, cars=None):
+        self.scene_tick(cars)
         pg.display.flip()
         for event in pg.event.get():
             s_event = self.scene_events()
-            if s_event: self.scene = s_event
+            if s_event: 
+                self.scene = Scene(s_event)
+                return s_event
             if event.type == pg.KEYDOWN:
                 if event.key == pg.K_ESCAPE: exit(0)
                 if event.key == pg.K_F11:
@@ -79,6 +80,8 @@ class MainMenu():
         if self.play.update(event): return Scene.game
         if self.quit.update(event): exit(0)
 
+class Settings():
+    
 class CarGraphics():
     def __init__(self, screen, game, color_id, model, focus=True):
         self.model = model

@@ -36,14 +36,14 @@ class Graphics():
 
     def scene_rescale(self): self.scene_obj.rescale()
 
-    def scene_events(self): return self.scene_obj.events()
+    def scene_events(self, event): return self.scene_obj.events(event)
 
     def graphics_loop(self, cars=None):
         self.scene_tick(cars)
         pg.display.flip()
         for event in pg.event.get():
-            s_event = self.scene_events()
-            if s_event: 
+            s_event = self.scene_events(event)
+            if s_event:
                 if s_event[0] == 1: self.scene = Scene(s_event[1])
                 return s_event
             if event.type == pg.KEYDOWN:
@@ -85,7 +85,7 @@ class MainMenu():
 
 class Settings():
     pass
-    
+
 class CarGraphics():
     def __init__(self, screen, game, color_id, model, focus=True):
         self.model = model
@@ -193,6 +193,6 @@ class GameGraphics():
         self.create_matrix()
         self.background()
 
-    def events(self): return None
+    def events(self, event): return None
 
 

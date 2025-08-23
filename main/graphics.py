@@ -41,22 +41,6 @@ class Graphics():
     def graphics_loop(self, cars=None):
         self.scene_tick(cars)
         pg.display.flip()
-        for event in pg.event.get():
-            s_event = self.scene_events(event)
-            if s_event:
-                if s_event[0] == 1: self.scene = Scene(s_event[1])
-                return s_event
-            if event.type == pg.KEYDOWN:
-                if event.key == pg.K_ESCAPE: exit(0)
-                if event.key == pg.K_F11:
-                    if self.fullscreen:
-                        self.screen = pg.display.set_mode((self.SCREEN_WIDTH / 2, self.SCREEN_HEIGHT / 2), pg.RESIZABLE)
-                        self.fullscreen = False
-                    else:
-                        self.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
-                        self.fullscreen = True
-            elif event.type == pg.QUIT: exit(0)
-            elif event.type == pg.WINDOWRESIZED: self.scene_rescale()
 
 class MainMenu():
     def __init__(self, screen):

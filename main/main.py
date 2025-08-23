@@ -4,7 +4,7 @@ import cars
 from graphics import Graphics
 from enum import IntEnum
 from random import randrange
-from pygame import time
+import pygame as pg
 
 
 
@@ -21,8 +21,6 @@ class Main:
     def __init__(self):
         with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
 
-
-
         self.scene = Scene.main_menu
         self.ai_amount = 6
 
@@ -34,8 +32,6 @@ class Main:
         local_dir = os.path.join(os.path.dirname(__file__))
         with open(os.path.join(local_dir, 'winner.pickle'), 'rb') as f: g = pickle.load(f)
         with open(os.path.join(local_dir, 'genome_config.pickle'), 'rb') as f: conf = pickle.load(f)
-
-
         ai_cars = [cars.AiCar([0, 8], accel_values[randrange(0, 7)], deccel_values[randrange(0, 7)], g, conf, self.cent_line) for x in range(self.ai_amount)]
         self.cars_graphics = [self.player]
         self.cars_graphics.extend([{"model": car, "color_id": randrange(2, 7), "focus": False} for car in ai_cars])
@@ -45,26 +41,51 @@ class Main:
 
 
     def game_loop(self):
-        self.graphics = Graphics(self.scene)
-        clock = time.Clock()
+        graphics = Graphics(self.scene)
+        clock = pg.time.Clock()
         while True:
             t = clock.tick(FRAME_RATE)
+
             if self.scene == Scene.main_menu:
-                s_event = self.graphics.graphics_loop()
+                graphics.graphics_loop()
+
             elif self.scene == Scene.game:
+
                 for car in self.cars:
                     car.tick(t)
-                s_event = self.graphics.graphics_loop(self.cars_graphics)
 
+                graphics.graphics_loop(self.cars_graphics)
 
-            if s_event:
-                if s_event[0] == 1:
-                    if s_event[1] == 1:
-                        self.car_init()
-                        self.graphics.scene_chg(self.cars_graphics)
-                    self.scene = Scene(s_event[1])
-                elif s_event[0] == 2:
-                    pass
+            for event in pg.event.get():
+                s_event = graphics.scene_events(event)
+                if s_event:
+                    if s_event[0] == 1:
+                        graphics.scene = Scene(s_event[1])
+                        if s_event[1] == 1:
+                            self.car_init()
+                            graphics.scene_chg(self.cars_graphics)
+                        self.scene = Scene(s_event[1])
+                    elif s_event[0] == 2:
+                        #data collection here
+                        pass
+
+                if event.type in (pg.KEYDOWN, pg.KEYUP) and self.scene == Scene.game:
+                    if event.key == pg.K_LEFT and graphics.scene_obj.zoom > 0.08: graphics.scene_obj.zoom -= 0.01
+                    elif event.key == pg.K_RIGHT and graphics.scene_obj.zoom < 0.8: graphics.scene_obj.zoom += 0.01
+                    else: self.cars[0].control(event)
+
+                if event.type == pg.KEYDOWN:
+                    if event.key == pg.K_ESCAPE: exit(0)
+                    if event.key == pg.K_F11:
+                        if graphics.fullscreen:
+                            graphics.screen = pg.display.set_mode((graphics.SCREEN_WIDTH / 2, graphics.SCREEN_HEIGHT / 2), pg.RESIZABLE)
+                            graphics.fullscreen = False
+                        else:
+                            graphics.screen = pg.display.set_mode((0, 0), pg.FULLSCREEN)
+                            graphics.fullscreen = True
+                elif event.type == pg.QUIT: exit(0)
+                elif event.type == pg.WINDOWRESIZED: graphics.scene_rescale()
+
 
 
 

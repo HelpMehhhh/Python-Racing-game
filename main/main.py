@@ -26,7 +26,7 @@ class Main:
 
 
     def car_init(self):
-        self.player = {"model": cars.PlayerCar([0,0], self.cent_line),"color_id": 1, "focus": True}
+        self.player = {"model": cars.PlayerCar([-4, -10], self.cent_line),"color_id": 1, "focus": True}
         accel_values = [14, 15, 16, 17, 18, 19, 20]
         deccel_values = [21, 22, 23, 24, 25, 26, 27]
         ai_cars = []
@@ -38,7 +38,7 @@ class Main:
             with open(os.path.join("models", f'{accel}_{deccel}_genome.pickle'), 'rb') as f: g = pickle.load(f)
             with open(os.path.join("models", f'{accel}_{deccel}_config.pickle'), 'rb') as f: conf = pickle.load(f)
 
-            ai_cars.append(cars.AiCar([0, ((r*2)+6)*randrange(1, 6)], accel, deccel, g, conf, self.cent_line))
+            ai_cars.append(cars.AiCar([0, (r*2)*randrange(1, 8)+1], accel, deccel, g, conf, self.cent_line))
         self.cars_graphics = [self.player]
         self.cars_graphics.extend([{"model": car, "color_id": randrange(2, 7), "focus": False} for car in ai_cars])
         self.cars = [self.player["model"]]

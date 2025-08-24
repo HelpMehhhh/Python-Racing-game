@@ -150,6 +150,18 @@ class AiCar(Car):
         self.last_time = 0
         self.last_dist = 0
 
+    def reset(self):
+        self.pos = [0,1]
+        self.car_angle = np.pi/2
+        self.target_cl_index = 1
+        self.speed = 0
+        self.turning_angle = 0
+        self.steerstate = self.SteerState.center
+        self.speedstate = self.SpeedState.const
+        self.d = 0
+        self.time = 0
+
+
     def tick(self, time_elapsed):
         super().tick(time_elapsed)
         self.brain_calc(17)

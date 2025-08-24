@@ -203,6 +203,7 @@ class AiCar(Car):
         if abs(self.d) >= 7:
             reason = "Off Track"
             self.state = 0
+            self.reset()
 
 
         output = self.n_net.activate(self.get_data())

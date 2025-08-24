@@ -29,10 +29,16 @@ class Main:
         self.player = {"model": cars.PlayerCar([0,0], self.cent_line),"color_id": 1, "focus": True}
         accel_values = [14, 15, 16, 17, 18, 19, 20]
         deccel_values = [21, 22, 23, 24, 25, 26, 27]
-        local_dir = os.path.join(os.path.dirname(__file__))
-        with open(os.path.join(local_dir, 'winner.pickle'), 'rb') as f: g = pickle.load(f)
-        with open(os.path.join(local_dir, 'genome_config.pickle'), 'rb') as f: conf = pickle.load(f)
-        ai_cars = [cars.AiCar([0, 8], accel_values[randrange(0, 7)], deccel_values[randrange(0, 7)], g, conf, self.cent_line) for x in range(self.ai_amount)]
+        ai_cars = []
+        accel_deccel_values = [(10, 17), (11, 18), (12, 19), (13, 20), (14, 21), (16, 23), (18, 25)]
+        for i in range(self.ai_amount):
+            r = randrange(0, 7)
+            accel = accel_deccel_values[r][0]
+            deccel = accel_deccel_values[r][1]
+            with open(os.path.join("models", f'{accel}_{deccel}_genome.pickle'), 'rb') as f: g = pickle.load(f)
+            with open(os.path.join("models", f'{accel}_{deccel}_config.pickle'), 'rb') as f: conf = pickle.load(f)
+
+            ai_cars.append(cars.AiCar([0, ((r*2)+6)*randrange(1, 6)], accel, deccel, g, conf, self.cent_line))
         self.cars_graphics = [self.player]
         self.cars_graphics.extend([{"model": car, "color_id": randrange(2, 7), "focus": False} for car in ai_cars])
         self.cars = [self.player["model"]]
@@ -44,7 +50,7 @@ class Main:
         graphics = Graphics(self.scene)
         clock = pg.time.Clock()
         while True:
-            t = clock.tick(FRAME_RATE)
+            clock.tick(FRAME_RATE)
 
             if self.scene == Scene.main_menu:
                 graphics.graphics_loop()
@@ -52,7 +58,7 @@ class Main:
             elif self.scene == Scene.game:
 
                 for car in self.cars:
-                    car.tick(t)
+                    car.tick(17)
 
                 graphics.graphics_loop(self.cars_graphics)
 

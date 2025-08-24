@@ -16,7 +16,7 @@ def eval_genomes(genomes, config):
     for g_id, g in genomes:
         g.fitness = 0
         speed_index = r.randrange(0, 7)
-        cars.append(AiCar([0,1], 17, 24, g, config, cent_line))
+        cars.append(AiCar([0,1], 18, 25, g, config, cent_line))
 
     have_live = True
     #cars_graphics = [{"model": car, "color_id": 2, "focus": False} for car in cars]
@@ -47,13 +47,13 @@ def run(config_path, generations, extract):
     checkpoint_dir = "models"
     if not extract: pop = neat.Population(config)
     else:
-        pop = Checkpointer.restore_checkpoint(os.path.join(checkpoint_dir, "neat-checkpoint-cfr-2361"))
+        pop = Checkpointer.restore_checkpoint(os.path.join(checkpoint_dir, "neat-checkpoint-cfr-18_25-3685"))
         #pop = neat.Population(config, initial_state=(pop.population, pop.species, pop.generation))
     pop.add_reporter(neat.StdOutReporter(True))
     stats = neat.StatisticsReporter()
     pop.add_reporter(stats)
 
-    pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr-6_6-")))
+    #pop.add_reporter(Checkpointer(generation_interval=100, filename_prefix=os.path.join(checkpoint_dir, "neat-checkpoint-cfr")))
 
     pop.run(eval_genomes, generations)
     final_genomes = pop.population
@@ -67,8 +67,8 @@ def run(config_path, generations, extract):
        winner_fitness = genome.fitness
     print(f"Winner Fitness: {winner_genome.fitness}")
 
-    with open(os.path.join(local_dir, 'genome_config.pickle'), 'wb') as f: pickle.dump(pop.config, f)
-    with open(os.path.join(local_dir, 'winner.pickle'), 'wb') as f: pickle.dump(winner_genome, f)
+    with open(os.path.join(local_dir, '18_25_config.pickle'), 'wb') as f: pickle.dump(pop.config, f)
+    with open(os.path.join(local_dir, '18_25_genome.pickle'), 'wb') as f: pickle.dump(winner_genome, f)
 
 if __name__ == '__main__':
     #profiler = cProfile.Profile()

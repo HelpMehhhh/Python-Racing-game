@@ -29,6 +29,7 @@ class Graphics():
     def scene_chg(self, cars):
         if self.scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
         elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars)
+        pg.display.flip()
 
     def scene_tick(self, cars):
         if self.scene == Scene.main_menu: self.scene_obj.tick()
@@ -113,6 +114,7 @@ class GameGraphics():
             if car["focus"] == True:
                 self.screen_center = car["model"].pos
                 self.rotation = car["model"].car_angle
+                self.speed = car["model"].speed*3600
                 focus = True
         if not focus:
             self.screen_center = [120, 15]
@@ -146,12 +148,14 @@ class GameGraphics():
             if car["focus"] == True:
                 self.screen_center = car["model"].pos
                 self.rotation = car["model"].car_angle
+                self.speed = car["model"].speed*3600
 
         self.create_matrix()
         self.screen.fill((78, 217, 65))
         self.background()
         for i, graphic in enumerate(self.car_graphics):
             graphic.tick(self.cars[i], self.rotation)
+        self.hud()
 
     def create_matrix(self):
         s_x, s_y = self.screen.get_size()
@@ -160,6 +164,32 @@ class GameGraphics():
         scale = np.array([[0, 0], [(s_x*(0.05208*self.zoom)), 0], [0, (s_y*(0.09259*self.zoom))]], dtype=np.float64)
         scale[0] = -np.matmul((1, *self.screen_center), scale)+(s_x/2, s_y/2)
         self.coord_conversion = scale
+
+    def hud(self):
+        w, h = self.screen.get_size()
+        color = (255, 255, 255)
+        info_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
+        speed_bg = pg.transform.scale(info_bg, (w/6, h/10))
+        score_bg = pg.transform.scale(info_bg, (w/7, h/10))
+        time_bg = pg.transform.scale(info_bg, (w/6, h/10))
+        speed_bg_rect = speed_bg.get_rect(center=(w/10, h/1.1))
+        score_bg_rect = score_bg.get_rect(center=(w/4, h/14))
+        time_bg_rect = time_bg.get_rect(center=(w/11, h/14))
+        t_font = pg.font.SysFont('arial', int(h/20))
+        speed_text = t_font.render(f"{int(round(self.speed, 0))} KM/H", True, color)
+        score_text = t_font.render("Score:", True, color)
+        time_text = t_font.render("Time left:", True, color)
+        speed_text_rect = speed_text.get_rect(center=(w/10, h/1.1))
+        score_text_rect = score_text.get_rect(center=(w/4.4, h/14))
+        time_text_rect = time_text.get_rect(center=(w/13.5, h/14))
+        self.screen.blit(speed_bg, speed_bg_rect)
+        self.screen.blit(speed_text, speed_text_rect)
+        self.screen.blit(score_bg, score_bg_rect)
+        self.screen.blit(score_text, score_text_rect)
+        self.screen.blit(time_bg, time_bg_rect)
+        self.screen.blit(time_text, time_text_rect)
+
+
 
     def background(self):
         cent_line_screen = []
@@ -178,5 +208,9 @@ class GameGraphics():
         self.background()
 
     def events(self, event): return None
+
+
+
+
 
 

@@ -26,21 +26,21 @@ class Graphics():
         self.scene = scene
         self.scene_rescale()
 
-    def scene_chg(self, cars):
+    def scene_chg(self, cars=None, time=None):
         if self.scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
-        elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars)
+        elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars, time)
         pg.display.flip()
 
-    def scene_tick(self, cars):
+    def scene_tick(self, cars, time):
         if self.scene == Scene.main_menu: self.scene_obj.tick()
-        elif self.scene == Scene.game: self.scene_obj.tick(cars)
+        elif self.scene == Scene.game: self.scene_obj.tick(cars, time)
 
     def scene_rescale(self): self.scene_obj.rescale()
 
     def scene_events(self, event): return self.scene_obj.events(event)
 
-    def graphics_loop(self, cars=None):
-        self.scene_tick(cars)
+    def graphics_loop(self, cars=None, time=None):
+        self.scene_tick(cars, time)
         pg.display.flip()
 
 class MainMenu():
@@ -98,7 +98,7 @@ class CarGraphics():
 
 class GameGraphics():
     TRACK_WIDTH = 6
-    def __init__(self, screen, cars):
+    def __init__(self, screen, cars, time):
         self.screen = screen
         self.screen.fill((0,0,0))
         self.zoom = 0.05
@@ -107,6 +107,7 @@ class GameGraphics():
         with open(os.path.join(local_dir, 'parallel_points_01.pickle'), 'rb') as f: self.para_lines = pickle.load(f)
         self.cars = []
         self.car_graphics = []
+        self.time_left = time
         focus = False
         for car in cars:
             self.cars.append(car["model"])
@@ -143,7 +144,8 @@ class GameGraphics():
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
             return result
 
-    def tick(self, cars):
+    def tick(self, cars, time):
+        self.time_left = time
         for car in cars:
             if car["focus"] == True:
                 self.screen_center = car["model"].pos
@@ -171,17 +173,17 @@ class GameGraphics():
         info_bg = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
         speed_bg = pg.transform.scale(info_bg, (w/6, h/10))
         score_bg = pg.transform.scale(info_bg, (w/7, h/10))
-        time_bg = pg.transform.scale(info_bg, (w/6, h/10))
+        time_bg = pg.transform.scale(info_bg, (w/5, h/10))
         speed_bg_rect = speed_bg.get_rect(center=(w/10, h/1.1))
-        score_bg_rect = score_bg.get_rect(center=(w/4, h/14))
-        time_bg_rect = time_bg.get_rect(center=(w/11, h/14))
+        score_bg_rect = score_bg.get_rect(center=(w/3.5, h/14))
+        time_bg_rect = time_bg.get_rect(center=(w/9, h/14))
         t_font = pg.font.SysFont('arial', int(h/20))
         speed_text = t_font.render(f"{int(round(self.speed, 0))} KM/H", True, color)
-        score_text = t_font.render("Score:", True, color)
-        time_text = t_font.render("Time left:", True, color)
+        score_text = t_font.render("Score)", True, color)
+        time_text = t_font.render(f"Time left) {int(self.time_left // 60)}:{int(round(self.time_left % 60, 0)):02d}", True, color)
         speed_text_rect = speed_text.get_rect(center=(w/10, h/1.1))
-        score_text_rect = score_text.get_rect(center=(w/4.4, h/14))
-        time_text_rect = time_text.get_rect(center=(w/13.5, h/14))
+        score_text_rect = score_text.get_rect(center=(w/3.8, h/14))
+        time_text_rect = time_text.get_rect(center=(w/9.3, h/14))
         self.screen.blit(speed_bg, speed_bg_rect)
         self.screen.blit(speed_text, speed_text_rect)
         self.screen.blit(score_bg, score_bg_rect)

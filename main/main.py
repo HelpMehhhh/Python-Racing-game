@@ -49,18 +49,19 @@ class Main:
     def game_loop(self):
         graphics = Graphics(self.scene)
         clock = pg.time.Clock()
+        time_left = 310
         while True:
-            clock.tick(FRAME_RATE)
+            t = clock.tick(FRAME_RATE)
 
             if self.scene == Scene.main_menu:
                 graphics.graphics_loop()
 
             elif self.scene == Scene.game:
-
+                time_left -= t/1000
                 for car in self.cars:
                     car.tick(17)
 
-                graphics.graphics_loop(self.cars_graphics)
+                graphics.graphics_loop(self.cars_graphics, time_left)
 
             for event in pg.event.get():
                 s_event = graphics.scene_events(event)
@@ -69,7 +70,7 @@ class Main:
                         graphics.scene = Scene(s_event[1])
                         if s_event[1] == 1:
                             self.car_init()
-                            graphics.scene_chg(self.cars_graphics)
+                            graphics.scene_chg(self.cars_graphics, time_left)
                         self.scene = Scene(s_event[1])
                     elif s_event[0] == 2:
                         #data collection here

@@ -77,7 +77,7 @@ class PlayerCar(Car):
     def __init__(self, start_pos, cent_line):
         Car.__init__(self, start_pos, cent_line)
         self.max_accel = 17/1000000
-        self.max_deccel = 25/1000000
+        self.max_deccel = 32/1000000
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
 

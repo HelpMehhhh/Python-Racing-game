@@ -26,21 +26,21 @@ class Graphics():
         self.scene = scene
         self.scene_rescale()
 
-    def scene_chg(self, cars=None, time=None):
+    def scene_chg(self, cars=None, time=None, score=None):
         if self.scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
-        elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars, time)
+        elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars, time, score)
         pg.display.flip()
 
-    def scene_tick(self, cars, time):
+    def scene_tick(self, cars, time, score):
         if self.scene == Scene.main_menu: self.scene_obj.tick()
-        elif self.scene == Scene.game: self.scene_obj.tick(cars, time)
+        elif self.scene == Scene.game: self.scene_obj.tick(cars, time, score)
 
     def scene_rescale(self): self.scene_obj.rescale()
 
     def scene_events(self, event): return self.scene_obj.events(event)
 
-    def graphics_loop(self, cars=None, time=None):
-        self.scene_tick(cars, time)
+    def graphics_loop(self, cars=None, time=None, score=None):
+        self.scene_tick(cars, time, score)
         pg.display.flip()
 
 class MainMenu():
@@ -92,16 +92,17 @@ class CarGraphics():
             self.car_image = pg.transform.rotate(self.car_image, float(np.degrees(self.model.car_angle))-float(np.degrees(self.rotation)))
         self.car_rect = self.car_image.get_rect(center=self.game.convert_passer(self.model.pos))
         self.screen.blit(self.car_image, self.car_rect)
-        #pg.draw.line(self.screen, 'lime', self.game.convert_passer(self.model.pos), self.game.convert_passer(self.model.cl_points[self.model.target_cl_index]), 2)
+        
         #pg.draw.line(self.screen, 'red', self.game.convert_passer(self.model.pos), self.game.convert_passer(self.model.point), 2)
 
 
 class GameGraphics():
     TRACK_WIDTH = 6
-    def __init__(self, screen, cars, time):
+    def __init__(self, screen, cars, time, score):
         self.screen = screen
         self.screen.fill((0,0,0))
         self.zoom = 0.05
+        self.score = score
         local_dir = os.path.dirname(__file__)
         with open(os.path.join(local_dir, 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
         with open(os.path.join(local_dir, 'parallel_points_01.pickle'), 'rb') as f: self.para_lines = pickle.load(f)
@@ -109,10 +110,12 @@ class GameGraphics():
         self.car_graphics = []
         self.time_left = time
         focus = False
+        self.warning = False
         for car in cars:
             self.cars.append(car["model"])
             self.car_graphics.append(CarGraphics(self.screen, self, car["color_id"], car["model"], car["focus"]))
             if car["focus"] == True:
+                self.focus_car = car["model"]
                 self.screen_center = car["model"].pos
                 self.rotation = car["model"].car_angle
                 self.speed = car["model"].speed*3600
@@ -144,10 +147,13 @@ class GameGraphics():
             result = np.dot(np.array([ofssc, *npgamev], dtype=np.float64), coordc_m)
             return result
 
-    def tick(self, cars, time):
+    def tick(self, cars, time, score):
+        s_x, s_y = self.screen.get_size()
         self.time_left = time
+        self.score = score
         for car in cars:
             if car["focus"] == True:
+                self.focus_car = car["model"]
                 self.screen_center = car["model"].pos
                 self.rotation = car["model"].car_angle
                 self.speed = car["model"].speed*3600
@@ -157,6 +163,10 @@ class GameGraphics():
         self.background()
         for i, graphic in enumerate(self.car_graphics):
             graphic.tick(self.cars[i], self.rotation)
+        self.warning = False
+        if self.focus_car.prev_distance == self.focus_car.distance and self.focus_car.speed != 0:  
+            pg.draw.line(self.screen, 'red', self.convert_passer(self.focus_car.pos), self.convert_passer(self.focus_car.cl_points[self.focus_car.target_cl_index]), s_x//400)
+            self.warning = True
         self.hud()
 
     def create_matrix(self):
@@ -179,11 +189,16 @@ class GameGraphics():
         time_bg_rect = time_bg.get_rect(center=(w/9, h/14))
         t_font = pg.font.SysFont('arial', int(h/20))
         speed_text = t_font.render(f"{int(round(self.speed, 0))} KM/H", True, color)
-        score_text = t_font.render("Score)", True, color)
+        score_text = t_font.render(f"Score) {int(round(self.score, 0))}", True, color)
         time_text = t_font.render(f"Time left) {int(self.time_left // 60)}:{int(round(self.time_left % 60, 0)):02d}", True, color)
         speed_text_rect = speed_text.get_rect(center=(w/10, h/1.1))
-        score_text_rect = score_text.get_rect(center=(w/3.8, h/14))
+        score_text_rect = score_text.get_rect(center=(w/3.6, h/14))
         time_text_rect = time_text.get_rect(center=(w/9.3, h/14))
+        if self.warning:
+            warn_text = t_font.render(f"YOU HAVE SKIPPED THE TRACK! FOLLOW THE RED LINE BACK TO REGAIN SCORE!", True, (255,0,0))
+            warn_text_rect = warn_text.get_rect(center=(w/2, h/1.6))
+            self.screen.blit(warn_text, warn_text_rect)
+
         self.screen.blit(speed_bg, speed_bg_rect)
         self.screen.blit(speed_text, speed_text_rect)
         self.screen.blit(score_bg, score_bg_rect)

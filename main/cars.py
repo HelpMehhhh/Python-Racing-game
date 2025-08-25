@@ -25,12 +25,14 @@ class Car():
         self.target_cl_index = 1
         self.distance_to_seg = 0
         self.distance = 0
+        self.prev_distance = self.distance
         self.point = self.pos
 
     def tick(self, time_elapsed):
         self.time += time_elapsed/1000
 
     def get_current_dist(self):
+        self.prev_distance = self.distance
         seg_data = self.get_current_seg()
         v = np.array(seg_data[1]) - np.array(self.cl_points[self.target_cl_index-1])
         if abs(seg_data[0]) > 7: self.distance = self.distance_to_seg
@@ -80,6 +82,7 @@ class PlayerCar(Car):
         self.max_deccel = 32/1000000
         self.steerstate = self.SteerState.center
         self.speedstate = self.SpeedState.const
+        self.d = 0
 
     def control(self, event):
         if (event.type == pg.KEYUP):
@@ -131,7 +134,7 @@ class PlayerCar(Car):
         super().tick(time_elapsed)
         self.steering(time_elapsed)
         self.movement_calc(time_elapsed)
-        self.get_current_dist()
+        self.d = self.get_current_dist()
         #print(self.distance)
 
 

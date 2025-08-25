@@ -35,8 +35,8 @@ class Main:
             r = randrange(0, 7)
             accel = accel_deccel_values[r][0]
             deccel = accel_deccel_values[r][1]
-            with open(os.path.join("models", f'{accel}_{deccel}_genome.pickle'), 'rb') as f: g = pickle.load(f)
-            with open(os.path.join("models", f'{accel}_{deccel}_config.pickle'), 'rb') as f: conf = pickle.load(f)
+            with open(os.path.dirname(os.path.abspath(__file__))+f'/../models/{accel}_{deccel}_genome.pickle', 'rb') as f: g = pickle.load(f)
+            with open(os.path.dirname(os.path.abspath(__file__))+f'/../models/{accel}_{deccel}_config.pickle', 'rb') as f: conf = pickle.load(f)
 
             ai_cars.append(cars.AiCar([0, (r*2)*randrange(1, 8)+1], accel, deccel, g, conf, self.cent_line))
         self.cars_graphics = [self.player]
@@ -50,6 +50,7 @@ class Main:
         graphics = Graphics(self.scene)
         clock = pg.time.Clock()
         time_left = 310
+        score = 0
         while True:
             t = clock.tick(FRAME_RATE)
 
@@ -58,10 +59,12 @@ class Main:
 
             elif self.scene == Scene.game:
                 time_left -= t/1000
-                for car in self.cars:
+                score = 0
+                for i, car in enumerate(self.cars):
                     car.tick(17)
-
-                graphics.graphics_loop(self.cars_graphics, time_left)
+                    if i > 0: score += self.cars[0].distance // car.distance
+                
+                graphics.graphics_loop(self.cars_graphics, time_left, score)
 
             for event in pg.event.get():
                 s_event = graphics.scene_events(event)
@@ -70,7 +73,7 @@ class Main:
                         graphics.scene = Scene(s_event[1])
                         if s_event[1] == 1:
                             self.car_init()
-                            graphics.scene_chg(self.cars_graphics, time_left)
+                            graphics.scene_chg(self.cars_graphics, time_left, score)
                         self.scene = Scene(s_event[1])
                     elif s_event[0] == 2:
                         #data collection here

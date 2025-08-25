@@ -27,8 +27,6 @@ class Main:
 
     def car_init(self):
         self.player = {"model": cars.PlayerCar([-4, -10], self.cent_line),"color_id": 1, "focus": True}
-        accel_values = [14, 15, 16, 17, 18, 19, 20]
-        deccel_values = [21, 22, 23, 24, 25, 26, 27]
         ai_cars = []
         accel_deccel_values = [(10, 17), (11, 18), (12, 19), (13, 20), (14, 21), (16, 23), (18, 25)]
         for i in range(self.ai_amount):
@@ -60,6 +58,7 @@ class Main:
             elif self.scene == Scene.game:
                 time_left -= t/1000
                 score = 0
+                
                 for i, car in enumerate(self.cars):
                     car.tick(17)
                     if i > 0: score += self.cars[0].distance // car.distance

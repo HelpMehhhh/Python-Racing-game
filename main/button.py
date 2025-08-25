@@ -15,7 +15,7 @@ class Button():
         self.image = pg.image.load(os.path.dirname(os.path.abspath(__file__))+'/../static/button.png')
         self.x, self.y = self.screen.get_size()
         self.size = int((0.10*((self.x + self.y)/3)) / self.size_minus)
-        self.image = pg.transform.scale(self.image, (self.x/4, self.y/5))
+        self.image = pg.transform.scale(self.image, (self.x/3, self.y/5))
         self.image_rect = self.image.get_rect(center=(self.x/self.pos[0], self.y/self.pos[1]))
         self.font = pg.font.SysFont('arial', self.size)
         self.text_box = self.font.render(self.text, True, self.color)

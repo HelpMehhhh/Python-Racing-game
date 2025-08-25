@@ -10,6 +10,7 @@ from enum import IntEnum
 class Scene(IntEnum):
         main_menu = 0
         game = 1
+        game_over = 2
 class Graphics():
 
     def __init__(self, scene, cars=None):
@@ -26,14 +27,16 @@ class Graphics():
         self.scene = scene
         self.scene_rescale()
 
-    def scene_chg(self, cars=None, time=None, score=None):
+    def scene_chg(self, cars=None, time=None, score=None, reason=None, highscore=None):
         if self.scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
         elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars, time, score)
+        elif self.scene == Scene.game_over: self.scene_obj = GameOver(self.screen, score, reason, highscore)
         pg.display.flip()
 
     def scene_tick(self, cars, time, score):
         if self.scene == Scene.main_menu: self.scene_obj.tick()
         elif self.scene == Scene.game: self.scene_obj.tick(cars, time, score)
+        elif self.scene == Scene.game_over: self.scene_obj.tick()
 
     def scene_rescale(self): self.scene_obj.rescale()
 
@@ -43,12 +46,57 @@ class Graphics():
         self.scene_tick(cars, time, score)
         pg.display.flip()
 
+class GameOver():
+    def __init__(self, screen, score, reason, highscore):
+        self.score = int(score)
+        self.reason = reason
+        self.screen = screen
+        self.screen.fill((0,0,0))
+        self.x, self.y = self.screen.get_size()
+        self.re_play = Button(self.screen, pos=(2, 1.77), text="PLAY AGAIN")
+        self.main_menu = Button(self.screen, pos=(2, 1.33), text="MAIN MENU")
+        self.highscore = highscore
+
+
+    def text(self):
+        l_font = pg.font.SysFont('arial', int(self.y/8))
+        font = pg.font.SysFont('arial', int(self.y/15))
+        game_over_text = l_font.render("GAME OVER!", True, (255,255,255))
+        reason_text = font.render(f"{self.reason}, Final score: {self.score}", True, (255,255,255))
+        game_over_text_rect = game_over_text.get_rect(center=(self.x/2, self.y/12))
+        reason_text_rect = reason_text.get_rect(center=(self.x/2, self.y/5))
+        if self.highscore:
+            highscore_text = font.render("NEW HIGHSCORE RECORDED!", True, (255,255,255))
+            highscore_text_rect = highscore_text.get_rect(center=(self.x/2, self.y/3))
+            self.screen.blit(highscore_text, highscore_text_rect)
+        self.screen.blit(game_over_text, game_over_text_rect)
+        self.screen.blit(reason_text, reason_text_rect)
+
+
+    def tick(self):
+        self.text()
+        self.re_play.update()
+        self.main_menu.update()
+
+    def rescale(self):
+        self.screen.fill((0,0,0))
+        self.x, self.y = self.screen.get_size()
+        self.text()
+        self.re_play.rescale()
+        self.main_menu.rescale()
+
+    def events(self, event):
+        if self.re_play.update(event): return [1, Scene.game]
+        if self.main_menu.update(event): return [1, Scene.main_menu]
+
+
 class MainMenu():
     def __init__(self, screen):
         self.screen = screen
         self.play = Button(self.screen, pos=(2, 2.66), text="PLAY")
         self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
+        self.rescale()
 
     def tick(self):
         self.screen.blit(self.menu_bg, (0,0))
@@ -92,7 +140,7 @@ class CarGraphics():
             self.car_image = pg.transform.rotate(self.car_image, float(np.degrees(self.model.car_angle))-float(np.degrees(self.rotation)))
         self.car_rect = self.car_image.get_rect(center=self.game.convert_passer(self.model.pos))
         self.screen.blit(self.car_image, self.car_rect)
-        
+
         #pg.draw.line(self.screen, 'red', self.game.convert_passer(self.model.pos), self.game.convert_passer(self.model.point), 2)
 
 
@@ -164,7 +212,7 @@ class GameGraphics():
         for i, graphic in enumerate(self.car_graphics):
             graphic.tick(self.cars[i], self.rotation)
         self.warning = False
-        if self.focus_car.prev_distance == self.focus_car.distance and self.focus_car.speed != 0:  
+        if self.focus_car.prev_distance == self.focus_car.distance and self.focus_car.speed != 0:
             pg.draw.line(self.screen, 'red', self.convert_passer(self.focus_car.pos), self.convert_passer(self.focus_car.cl_points[self.focus_car.target_cl_index]), s_x//400)
             self.warning = True
         self.hud()
@@ -195,9 +243,13 @@ class GameGraphics():
         score_text_rect = score_text.get_rect(center=(w/3.6, h/14))
         time_text_rect = time_text.get_rect(center=(w/9.3, h/14))
         if self.warning:
-            warn_text = t_font.render(f"YOU HAVE SKIPPED THE TRACK! FOLLOW THE RED LINE BACK TO REGAIN SCORE!", True, (255,0,0))
+            warn_text = t_font.render(f"YOU HAVE SKIPPED THE TRACK!", True, (255,0,0))
             warn_text_rect = warn_text.get_rect(center=(w/2, h/1.6))
             self.screen.blit(warn_text, warn_text_rect)
+            warn_text = t_font.render(f"FOLLOW THE RED LINE BACK TO REGAIN SCORE!", True, (255,0,0))
+            warn_text_rect = warn_text.get_rect(center=(w/2, h/1.4))
+            self.screen.blit(warn_text, warn_text_rect)
+
 
         self.screen.blit(speed_bg, speed_bg_rect)
         self.screen.blit(speed_text, speed_text_rect)

@@ -17,6 +17,7 @@ class Car():
     #color id refers to how the car image files are named 1 through 6
     def __init__(self, start_pos, cent_line):
         self.pos = [cent_line[0][0]+start_pos[0], cent_line[0][1]+start_pos[1]]
+        self.rect = pg.Rect(self.pos[0]-1, self.pos[1]+2, 2, 4)
         self.cl_points = cent_line
         self.turning_angle = 0
         self.car_angle = np.pi/2
@@ -30,6 +31,7 @@ class Car():
 
     def tick(self, time_elapsed):
         self.time += time_elapsed/1000
+        self.rect.update(self.pos[0]-1, self.pos[1]+2, 2, 4)
 
     def get_current_dist(self):
         self.prev_distance = self.distance

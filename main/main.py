@@ -15,6 +15,7 @@ FRAME_RATE = 60
 class Scene(IntEnum):
         main_menu = 0
         game = 1
+        game_over = 2
 
 
 class Main:
@@ -42,13 +43,16 @@ class Main:
         self.cars = [self.player["model"]]
         self.cars.extend(ai_cars)
 
-
+    def reset(self):
+        self.time_left = 310
+        self.score = 0
+        self.highscore = False
 
     def game_loop(self):
         graphics = Graphics(self.scene)
         clock = pg.time.Clock()
-        time_left = 310
-        score = 0
+        self.reset()
+        with open(os.path.join(os.path.dirname(__file__), 'highscore.pickle'), 'rb') as f: high_score = pickle.load(f)
         while True:
             t = clock.tick(FRAME_RATE)
 
@@ -56,14 +60,33 @@ class Main:
                 graphics.graphics_loop()
 
             elif self.scene == Scene.game:
-                time_left -= t/1000
-                score = 0
-                
+                self.time_left -= t/1000
+                self.score = 0
                 for i, car in enumerate(self.cars):
                     car.tick(17)
-                    if i > 0: score += self.cars[0].distance // car.distance
-                
-                graphics.graphics_loop(self.cars_graphics, time_left, score)
+                    if i > 0:
+                        self.score += self.cars[0].distance // car.distance
+                        if car.rect.colliderect(self.cars[0].rect):
+                            graphics.scene = Scene.game_over
+                            if self.score > high_score: self.highscore = True
+                            graphics.scene_chg(score=self.score, reason="You Hit a AI!", highscore=self.highscore)
+                            self.scene = Scene.game_over
+                            if self.highscore:
+                                with open(os.path.join(os.path.dirname(__file__), 'highscore.pickle'), 'wb') as f: pickle.dump(self.score, f)
+
+                if self.time_left < 0:
+                    graphics.scene = Scene.game_over
+                    if self.score > high_score: self.highscore = True
+                    graphics.scene_chg(score=self.score, reason="Time limit reached!", highscore=self.highscore)
+                    self.scene = Scene.game_over
+                    if self.highscore:
+                        with open(os.path.join(os.path.dirname(__file__), 'highscore.pickle'), 'wb') as f: pickle.dump(self.score, f)
+
+                graphics.graphics_loop(cars=self.cars_graphics, time=self.time_left, score=self.score)
+
+            elif self.scene == Scene.game_over:
+                graphics.graphics_loop()
+
 
             for event in pg.event.get():
                 s_event = graphics.scene_events(event)
@@ -72,7 +95,11 @@ class Main:
                         graphics.scene = Scene(s_event[1])
                         if s_event[1] == 1:
                             self.car_init()
-                            graphics.scene_chg(self.cars_graphics, time_left, score)
+                            self.reset()
+                            graphics.scene_chg(cars=self.cars_graphics, time=self.time_left, score=self.score)
+                        elif s_event[1] == 0:
+                            self.reset()
+                            graphics.scene_chg()
                         self.scene = Scene(s_event[1])
                     elif s_event[0] == 2:
                         #data collection here

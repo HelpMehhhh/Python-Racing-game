@@ -96,10 +96,17 @@ class MainMenu():
         self.play = Button(self.screen, pos=(2, 2.66), text="PLAY")
         self.settings = Button(self.screen, pos=(2, 1.77), size_minus=1.2, text="SETTINGS")
         self.quit = Button(self.screen, pos=(2, 1.33), text="QUIT")
+        self.x, self.y = self.screen.get_size()
+        with open(os.path.join(os.path.dirname(__file__), 'highscore.pickle'), 'rb') as f: self.high_score = pickle.load(f)
         self.rescale()
 
     def tick(self):
         self.screen.blit(self.menu_bg, (0,0))
+        
+        font = pg.font.SysFont('arial', int(self.y/20))
+        hs_text = font.render(f"Current Highscore: {self.high_score}")
+        hs_text_rect = hs_text.get_rect(center=(self.x/2, self.y/1.1))    
+        self.screen.blit(hs_text, hs_text_rect)    
         self.play.update()
         self.quit.update()
         self.settings.update()

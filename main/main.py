@@ -66,7 +66,7 @@ class Main:
                     car.tick(17)
                     if i > 0:
                         self.score += self.cars[0].distance // car.distance
-                        if car.rect.colliderect(self.cars[0].rect):
+                        #test collision
                             graphics.scene = Scene.game_over
                             if self.score > high_score: self.highscore = True
                             graphics.scene_chg(score=self.score, reason="You Hit a AI!", highscore=self.highscore)

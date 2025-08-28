@@ -104,7 +104,7 @@ class MainMenu():
         self.screen.blit(self.menu_bg, (0,0))
         
         font = pg.font.SysFont('arial', int(self.y/20))
-        hs_text = font.render(f"Current Highscore: {self.high_score}")
+        hs_text = font.render(f"Current Highscore: {int(self.high_score)}", True, (255,255,255))
         hs_text_rect = hs_text.get_rect(center=(self.x/2, self.y/1.1))    
         self.screen.blit(hs_text, hs_text_rect)    
         self.play.update()

@@ -2,7 +2,7 @@ import numpy as np
 CORNER_TO_CENTER_LEN = np.sqrt(1**2 + 2**2)
 CORNER_TO_CENTER_ANGLE = np.arctan(1/2)
 car_angle = np.pi/2
-player_angle = np.pi/2
+player_angle = 0
 player_pos = [0,0]
 car_pos = [0,0]
 

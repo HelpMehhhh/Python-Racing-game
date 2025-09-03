@@ -102,11 +102,11 @@ class MainMenu():
 
     def tick(self):
         self.screen.blit(self.menu_bg, (0,0))
-        
+
         font = pg.font.SysFont('arial', int(self.y/20))
         hs_text = font.render(f"Current Highscore: {int(self.high_score)}", True, (255,255,255))
-        hs_text_rect = hs_text.get_rect(center=(self.x/2, self.y/1.1))    
-        self.screen.blit(hs_text, hs_text_rect)    
+        hs_text_rect = hs_text.get_rect(center=(self.x/2, self.y/1.1))
+        self.screen.blit(hs_text, hs_text_rect)
         self.play.update()
         self.quit.update()
         self.settings.update()
@@ -180,6 +180,7 @@ class GameGraphics():
             self.rotation = np.pi/2
         self.rescale()
 
+
     def convert_passer(self, gamev, ofssc = 1):
         npgamev = np.array([*gamev], dtype=np.float64)
         screen_center = np.array([*self.screen_center], dtype=np.float64)
@@ -222,6 +223,7 @@ class GameGraphics():
         if self.focus_car.prev_distance == self.focus_car.distance and self.focus_car.speed != 0:
             pg.draw.line(self.screen, 'red', self.convert_passer(self.focus_car.pos), self.convert_passer(self.focus_car.cl_points[self.focus_car.target_cl_index]), s_x//400)
             self.warning = True
+        for car in cars: pg.draw.lines(self.screen,(225,0,0), True, (self.convert_passer(car["model"].car_corners[0]),self.convert_passer(car["model"].car_corners[1]),self.convert_passer(car["model"].car_corners[3]),self.convert_passer(car["model"].car_corners[2])), 2)
         self.hud()
 
     def create_matrix(self):

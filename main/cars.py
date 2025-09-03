@@ -18,6 +18,7 @@ class Car():
     def __init__(self, start_pos, cent_line):
         self.pos = [cent_line[0][0]+start_pos[0], cent_line[0][1]+start_pos[1]]
         self.cl_points = cent_line
+        self.car_corners = [(0,0),(0,0),(0,0),(0,0)]
         self.turning_angle = 0
         self.car_angle = np.pi/2
         self.speed = 0
@@ -235,6 +236,7 @@ class AiCar(Car):
         radius = ((self.speed*1000)**2)/50
 
         if radius > 0: self.car_angle += float(steer*self.speed/radius*time_elapsed)
+
         #print(self.speed*3600, self.distance)
 
 

@@ -30,8 +30,8 @@ class Car():
 
     def tick(self, time_elapsed):
         self.time += time_elapsed/1000
-        
-        
+
+
 
     def get_current_dist(self):
         self.prev_distance = self.distance
@@ -235,7 +235,6 @@ class AiCar(Car):
         radius = ((self.speed*1000)**2)/50
 
         if radius > 0: self.car_angle += float(steer*self.speed/radius*time_elapsed)
-
         #print(self.speed*3600, self.distance)
 
 

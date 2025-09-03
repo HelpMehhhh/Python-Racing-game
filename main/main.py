@@ -5,6 +5,7 @@ from graphics import Graphics
 from enum import IntEnum
 from random import randrange
 import pygame as pg
+import numpy as np
 
 
 
@@ -19,8 +20,11 @@ class Scene(IntEnum):
 
 
 class Main:
+    CORNER_TO_CENTER_LEN = np.sqrt(1**2 + 2**2)
+    CORNER_TO_CENTER_ANGLE = np.arctan(1/2)
     def __init__(self):
         with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
+
 
         self.scene = Scene.main_menu
         self.ai_amount = 6
@@ -41,12 +45,33 @@ class Main:
         self.cars_graphics = [self.player]
         self.cars_graphics.extend([{"model": car, "color_id": randrange(2, 7), "focus": False} for car in ai_cars])
         self.cars = [self.player["model"]]
+        self.player_model = self.cars[0]
         self.cars.extend(ai_cars)
 
     def reset(self):
         self.time_left = 310
         self.score = 0
         self.highscore = False
+
+    def _collision_test(self, norm_car, car):
+        norm_angle = norm_car.car_angle - (car.car_angle - np.pi/2)
+        if norm_angle > np.pi: norm_angle -= 2*np.pi
+        if norm_angle < -np.pi: norm_angle += 2*np.pi
+        norm_pos_vec = np.array(car.pos) - np.array(norm_car.pos)
+
+        #top left, top right, bottom left, bottom right from car view
+        car_corners = [[norm_pos_vec[0]+np.cos(norm_angle+self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN, norm_pos_vec[1]+np.sin(norm_angle+self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN],
+        [norm_pos_vec[0]+np.cos(norm_angle-self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN, norm_pos_vec[1]+np.sin(norm_angle-self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN],
+        [norm_pos_vec[0]+np.cos((norm_angle-np.pi)-self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN, norm_pos_vec[1]+np.sin((norm_angle-np.pi)-self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN],
+        [norm_pos_vec[0]+np.cos((norm_angle-np.pi)+self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN, norm_pos_vec[1]+np.sin((norm_angle-np.pi)+self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN]]
+        for corner in car_corners:
+            if (corner[0] > -1 and corner[0] < 1) and (corner[1] > -2 and corner[1] < 2): return True
+        return False
+
+
+
+
+
 
     def game_loop(self):
         graphics = Graphics(self.scene)
@@ -66,7 +91,7 @@ class Main:
                     car.tick(17)
                     if i > 0:
                         self.score += self.cars[0].distance // car.distance
-                        #test collision
+                        if self._collision_test(car, self.player_model) or self._collision_test(self.player_model, car):
                             graphics.scene = Scene.game_over
                             if self.score > high_score: self.highscore = True
                             graphics.scene_chg(score=self.score, reason="You Hit a AI!", highscore=self.highscore)

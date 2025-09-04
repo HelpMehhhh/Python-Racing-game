@@ -203,7 +203,8 @@ class Main:
 
             #Settings scene.
             elif self.scene == Scene.settings:
-                graphics.graphics_loop(ai_amount=self.ai_amount, hitboxes=self.hitboxes)
+                graphics.graphics_loop(ai_amount=self.ai_amount,
+                                       hitboxes=self.hitboxes)
 
             #Event handler, detects player key and mouse inputs and gets
             #  results from the different handlers.

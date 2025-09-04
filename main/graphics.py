@@ -11,6 +11,7 @@ class Scene(IntEnum):
         main_menu = 0
         game = 1
         game_over = 2
+        settings = 3
 class Graphics():
 
     def __init__(self, scene, cars=None):
@@ -27,23 +28,25 @@ class Graphics():
         self.scene = scene
         self.scene_rescale()
 
-    def scene_chg(self, cars=None, time=None, score=None, reason=None, highscore=None):
+    def scene_chg(self, cars=None, time=None, score=None, reason=None, highscore=None, ai_amount=None, hitboxes=None):
         if self.scene == Scene.main_menu: self.scene_obj = MainMenu(self.screen)
         elif self.scene == Scene.game: self.scene_obj = GameGraphics(self.screen, cars, time, score)
         elif self.scene == Scene.game_over: self.scene_obj = GameOver(self.screen, score, reason, highscore)
+        elif self.scene == Scene.settings: self.scene_obj = Settings(self.screen, ai_amount, hitboxes)
         pg.display.flip()
 
-    def scene_tick(self, cars, time, score):
+    def scene_tick(self, cars, time, score, ai_amount, hitboxes):
         if self.scene == Scene.main_menu: self.scene_obj.tick()
         elif self.scene == Scene.game: self.scene_obj.tick(cars, time, score)
         elif self.scene == Scene.game_over: self.scene_obj.tick()
+        elif self.scene == Scene.settings: self.scene_obj.tick(ai_amount, hitboxes)
 
     def scene_rescale(self): self.scene_obj.rescale()
 
     def scene_events(self, event): return self.scene_obj.events(event)
 
-    def graphics_loop(self, cars=None, time=None, score=None):
-        self.scene_tick(cars, time, score)
+    def graphics_loop(self, cars=None, time=None, score=None, ai_amount=None, hitboxes=None):
+        self.scene_tick(cars, time, score, ai_amount, hitboxes)
         pg.display.flip()
 
 class GameOver():
@@ -71,7 +74,6 @@ class GameOver():
             self.screen.blit(highscore_text, highscore_text_rect)
         self.screen.blit(game_over_text, game_over_text_rect)
         self.screen.blit(reason_text, reason_text_rect)
-
 
     def tick(self):
         self.text()
@@ -121,10 +123,53 @@ class MainMenu():
 
     def events(self, event):
         if self.play.update(event): return [1, Scene.game]
+        if self.settings.update(event): return [1, Scene.settings]
         if self.quit.update(event): exit(0)
 
 class Settings():
-    pass
+    def __init__(self, screen, ai_amount, hitboxes):
+        self.screen = screen
+        self.screen.fill((0,255,0))
+        self.x, self.y = self.screen.get_size()
+        self.ai_amount = ai_amount
+        self.hitboxes = hitboxes
+        self.main_menu = Button(self.screen, pos=(2, 1.33), text="MAIN MENU")
+        self.hitboxs_btn = Button(self.screen, pos=(4, 2), text="Hitboxes")
+        self.ai_amount_btn = Button(self.screen, pos=(4, 3), text="Ai Amount")
+        self.reset_hs_btn = Button(self.screen, size_minus=1.5, pos=(4, 5.5), text="Reset Highscore")
+
+
+    def text(self):
+        l_font = pg.font.SysFont('arial', int(self.y/8))
+        ai_count = l_font.render(f"{self.ai_amount} (16 max)", True, (255,0,0))
+        ai_count_rect = ai_count.get_rect(center=(self.x/1.5, self.y/3))
+        self.screen.blit(ai_count, ai_count_rect)
+        hitbox_text = "Hitboxes are on" if self.hitboxes else "Hitboxes are off"
+        hitbox = l_font.render(f"{hitbox_text}", True, (255,0,0))
+        hitbox_rect = hitbox.get_rect(center=(self.x/1.5, self.y/2))
+        self.screen.blit(hitbox, hitbox_rect)
+
+
+    def tick(self, ai_amount, hitboxes):
+        self.screen.fill((0,255,0))
+        self.ai_amount = ai_amount
+        self.hitboxes = hitboxes
+        self.text()
+        self.main_menu.update()
+        self.hitboxs_btn.update()
+        self.ai_amount_btn.update()
+        self.reset_hs_btn.update()
+
+    def rescale(self):
+        self.screen.fill((0,255,0))
+        self.x, self.y = self.screen.get_size()
+        self.main_menu.rescale()
+
+    def events(self, event):
+        if self.main_menu.update(event): return [1, Scene.main_menu]
+        if self.hitboxs_btn.update(event): return [2, "hitboxes"]
+        if self.ai_amount_btn.update(event): return [2, "ai_amount"]
+        if self.reset_hs_btn.update(event): return [2, "reset_hs"]
 
 class CarGraphics():
     def __init__(self, screen, game, color_id, model, focus=True):

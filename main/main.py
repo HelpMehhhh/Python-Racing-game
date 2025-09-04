@@ -17,11 +17,12 @@ class Scene(IntEnum):
         main_menu = 0
         game = 1
         game_over = 2
+        settings = 3
 
 
 class Main:
-    CORNER_TO_CENTER_LEN = np.sqrt(1**2 + 2**2)
-    CORNER_TO_CENTER_ANGLE = np.arctan(1/2)
+    CORNER_TO_CENTER_LEN = np.sqrt(0.8**2 + 1.8**2)
+    CORNER_TO_CENTER_ANGLE = np.arctan(0.8/1.8)
     def __init__(self):
         with open(os.path.join(os.path.dirname(__file__), 'center_points_08.pickle'), 'rb') as f: self.cent_line = pickle.load(f)
 
@@ -53,6 +54,7 @@ class Main:
         self.score = 0
         self.highscore = False
 
+
     def _collision_test(self, norm_car, car):
         norm_angle = norm_car.car_angle - (car.car_angle - np.pi/2)
         if norm_angle > np.pi: norm_angle -= 2*np.pi
@@ -65,11 +67,10 @@ class Main:
         [norm_pos_vec[0]+np.cos((norm_angle-np.pi)-self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN, norm_pos_vec[1]+np.sin((norm_angle-np.pi)-self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN],
         [norm_pos_vec[0]+np.cos((norm_angle-np.pi)+self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN, norm_pos_vec[1]+np.sin((norm_angle-np.pi)+self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN]]
         for corner in car_corners:
-            if (corner[0] > -1 and corner[0] < 1) and (corner[1] > -2 and corner[1] < 2): return True
+            if (corner[0] > -0.8 and corner[0] < 0.8) and (corner[1] > -1.8 and corner[1] < 1.8):
+                print(str(norm_car) + " collided with " + str(car))
+                return True
         return False
-
-
-
 
 
 
@@ -80,6 +81,7 @@ class Main:
         with open(os.path.join(os.path.dirname(__file__), 'highscore.pickle'), 'rb') as f: high_score = pickle.load(f)
         while True:
             t = clock.tick(FRAME_RATE)
+
 
             if self.scene == Scene.main_menu:
                 graphics.graphics_loop()
@@ -118,6 +120,9 @@ class Main:
             elif self.scene == Scene.game_over:
                 graphics.graphics_loop()
 
+            elif self.scene == Scene.settings:
+                graphics.graphics_loop(ai_amount=self.ai_amount, hitboxes=self.hitboxes)
+
 
             for event in pg.event.get():
                 s_event = graphics.scene_events(event)
@@ -131,10 +136,17 @@ class Main:
                         elif s_event[1] == 0:
                             self.reset()
                             graphics.scene_chg()
+                        elif s_event[1] == 3: graphics.scene_chg(ai_amount=self.ai_amount, hitboxes=self.hitboxes)
                         self.scene = Scene(s_event[1])
                     elif s_event[0] == 2:
-                        #data collection here
-                        pass
+                        if s_event[1] == "ai_amount":
+                            self.ai_amount += 1
+                            if self.ai_amount > 16: self.ai_amount = 1
+                        elif s_event[1] == "hitboxes":
+                            self.hitboxes = True if not self.hitboxes else False
+                        elif s_event[1] == "reset_hs":
+                            with open(os.path.join(os.path.dirname(__file__), 'highscore.pickle'), 'wb') as f: pickle.dump(0, f)
+
 
                 if event.type in (pg.KEYDOWN, pg.KEYUP) and self.scene == Scene.game:
                     if event.key == pg.K_LEFT and graphics.scene_obj.zoom > 0.08: graphics.scene_obj.zoom -= 0.01

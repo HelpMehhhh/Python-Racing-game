@@ -225,8 +225,8 @@ class Main:
                             graphics.scene_chg(cars=self.cars_graphics,
                             time=self.time_left, score=self.score)
 
-                        #Runs if game over scene.
-                        elif s_event[1] == Scene.game_over:
+                        #Runs if main menu scene.
+                        elif s_event[1] == Scene.main_menu:
                             self.reset()
                             graphics.scene_chg()
 

@@ -403,8 +403,8 @@ class GameGraphics():
             (255,0,0))
             warn_text_rect = warn_text.get_rect(center=(w/2, h/1.6))
             self.screen.blit(warn_text, warn_text_rect)
-            warn_text = t_font.render(f"FOLLOW THE RED LINE BACK TO REGAIN\
-                                      SCORE!", True, (255,0,0))
+            warn_text = t_font.render("FOLLOW THE RED LINE BACK TO REGAIN "+
+                                      "SCORE!", True, (255,0,0))
             warn_text_rect = warn_text.get_rect(center=(w/2, h/1.4))
             self.screen.blit(warn_text, warn_text_rect)
 

@@ -391,9 +391,10 @@ class GameGraphics():
                                    color)
         score_text = t_font.render(f"Score) {int(round(self.score, 0))}",
         True, color)
-        time_text = t_font.render(
-        f"Time left) {int(self.time_left // 60)}:\
-        {int(round(self.time_left % 60, 0)):02d}", True, color)
+        time_text = t_font.render("Time left) %u:%02u" %
+                                  (int(self.time_left // 60),
+                                   int(round(self.time_left % 60, 0))),
+                                   True, color)
         speed_text_rect = speed_text.get_rect(center=(w/10, h/1.1))
         score_text_rect = score_text.get_rect(center=(w/3.6, h/14))
         time_text_rect = time_text.get_rect(center=(w/9.3, h/14))

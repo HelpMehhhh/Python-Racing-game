@@ -164,6 +164,8 @@ class Main:
                     self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN,
                     car.pos[1]+np.sin((car.car_angle-np.pi)+
                     self.CORNER_TO_CENTER_ANGLE)*self.CORNER_TO_CENTER_LEN]]
+                    else: car.car_corners = [(0,0),(0,0),(0,0),(0,0)]
+
                     if i > 0:
                         self.score += self.cars[0].distance // car.distance
                         if self._collision_test(car,

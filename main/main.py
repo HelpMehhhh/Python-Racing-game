@@ -85,11 +85,12 @@ class Main:
     #  radians so that the width and height perfectly match up with the x,y
     #  axis, making it so that the collision calculation becomes a simple if
     #  statement.
-    def _collision_test(self, norm_car, car):
-        norm_angle = norm_car.car_angle - (car.car_angle - np.pi/2)
+    def _collision_test(self, target_car, normalized_car):
+        norm_angle = target_car.car_angle - (normalized_car.car_angle -
+        np.pi/2)
         if norm_angle > np.pi: norm_angle -= 2*np.pi
         if norm_angle < -np.pi: norm_angle += 2*np.pi
-        norm_pos_vec = np.array(norm_car.pos) - np.array(car.pos)
+        norm_pos_vec = np.array(target_car.pos) - np.array(normalized_car.pos)
 
         #top left, top right, bottom left, bottom right from car view.
         car_corners = [[norm_pos_vec[0]+np.cos(norm_angle+

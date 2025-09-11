@@ -1,6 +1,7 @@
 pygame
 numpy
 sympy
-numba
+numba==0.61.2user.emalil
 neat-python
+llvmlite==0.44.0
 scipy

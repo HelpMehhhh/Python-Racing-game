@@ -1,5 +1,6 @@
-#Main file, responsible for handaling the game states and running as a whole.
-#Latest visual c++ redistributable may be needed if you have an error with numba.
+# Main file, responsible for handaling the game states and running as a whole.
+# All packages can be installed with pip install -r .\requirements.txt
+# Latest visual c++ redistributable may be needed if you have an error with numba.
 
 #Packages beign used in the program.
 import os.path # For file handeling.
